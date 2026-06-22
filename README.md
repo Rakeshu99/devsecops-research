@@ -1,7 +1,7 @@
 ﻿# Comparing Open-Source and Cloud-Native AI/ML Security Tools as a Pre-Pipeline Gate in DevSecOps CI/CD Pipelines: A Study of SME Suitability
 
-MSc Research Project — TU Dublin, Computing with DevOps
-**Student:** Rakesh Uday Kumar (A00047386)
+MSc Research Project - TU Dublin, Computing with DevOps
+**Name:** Rakesh Uday Kumar (A00047386)
 **Supervisor:** Dr. Shivani Jaswal
 **Module:** RESH-H6002-53441-TU437-PT-202520
 
@@ -76,13 +76,13 @@ DSR was selected because this project builds and evaluates a technical artefact,
 
 ## Project Timeline
 
-| Phase | Dates | Focus |
-|---|---|---|
-| 1 | 2–15 June | Environment setup, open-source stack build |
-| 2 | 16–30 June | Open-source stack testing and results collection |
-| 3 | 1–20 July | Azure stack testing and results collection |
-| 4 | 21–31 July | Comparative analysis |
-| 5 | 1–31 August | Write-up and submission |
+| Phase | Dates        | Focus                                            |
+| ----- | ------------ | ------------------------------------------------ |
+| 1     | 2–15 June   | Environment setup, open-source stack build       |
+| 2     | 16–30 June  | Open-source stack testing and results collection |
+| 3     | 1–20 July   | Azure stack testing and results collection       |
+| 4     | 21–31 July  | Comparative analysis                             |
+| 5     | 1–31 August | Write-up and submission                          |
 
 ---
 
@@ -91,4 +91,3 @@ DSR was selected because this project builds and evaluates a technical artefact,
 Environment setup complete: Ubuntu VM provisioned, Docker installed, OWASP WebGoat deployed and verified accessible. See `docs/implementation-log.md` for full setup details and evidence.
 
 **Next step:** Integration of Semgrep as the first open-source tool, with results captured against WebGoat's source code.
-
