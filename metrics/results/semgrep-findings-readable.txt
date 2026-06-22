@@ -1,0 +1,321 @@
+rakesh@devsecops-research-vm:~/WebGoat$ semgrep --config=p/owasp-top-ten .
+
+┌──── ○○○ ────┐
+│ Semgrep CLI │
+└─────────────┘
+
+⠙ Loading rules from registry...                                                                        Scanning 974 files (only git-tracked) with 544 Code rules:
+
+  CODE RULES
+
+  Language      Rules   Files          Origin      Rules
+ ─────────────────────────────        ───────────────────
+  <multilang>       7     974          Community     544
+  java             60     316
+  js               65      81
+  html              1      69
+  yaml             19       9
+  json              3       9
+  bash              1       3
+  dockerfile        4       1
+
+
+  SUPPLY CHAIN RULES
+
+  💎 Sign in with `semgrep login` and run
+     `semgrep ci` to find dependency vulnerabilities and
+     advanced cross-file findings.
+
+
+  PROGRESS
+
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0:01:18
+Warning: 1 timeout error(s) in src/main/java/org/owasp/webgoat/lessons/challenges/challenge7/MD5.java
+when running the following rules: [java.spring.security.injection.tainted-url-host.tainted-url-host]
+Warning: 3 timeout error(s) in src/main/resources/webgoat/static/js/libs/ace.js when running the
+following rules: [javascript.angular.security.detect-angular-element-taint.detect-angular-element-taint,
+javascript.express.security.audit.express-ssrf.express-ssrf, javascript.express.security.express-
+insecure-template-usage.express-insecure-template-usage]
+Semgrep stopped running rules on src/main/resources/webgoat/static/js/libs/ace.js after 3 timeout
+error(s). See `--timeout-threshold` for more info.
+Warning: 3 timeout error(s) in src/main/resources/webgoat/static/js/libs/jquery-ui-1.10.4.js when
+running the following rules: [javascript.express.security.audit.express-ssrf.express-ssrf,
+javascript.express.security.express-insecure-template-usage.express-insecure-template-usage,
+javascript.express.security.injection.raw-html-format.raw-html-format]
+Semgrep stopped running rules on src/main/resources/webgoat/static/js/libs/jquery-ui-1.10.4.js after 3
+timeout error(s). See `--timeout-threshold` for more info.
+Warning: 3 timeout error(s) in src/main/resources/webgoat/static/plugins/bootstrap-
+wysihtml5/js/wysihtml5-0.3.0.js when running the following rules: [javascript.express.security.express-
+insecure-template-usage.express-insecure-template-usage, javascript.express.security.injection.raw-html-
+format.raw-html-format, javascript.express.security.x-frame-options-misconfiguration.x-frame-options-
+misconfiguration]
+Semgrep stopped running rules on src/main/resources/webgoat/static/plugins/bootstrap-
+wysihtml5/js/wysihtml5-0.3.0.js after 3 timeout error(s). See `--timeout-threshold` for more info.
+
+
+┌──────────────────┐
+│ 20 Code Findings │
+└──────────────────┘
+
+    .github/workflows/release.yml
+   ❯❯❱ yaml.github-actions.security.run-shell-injection.run-shell-injection
+          ❰❰ Blocking ❱❱
+          Using variable interpolation `${{...}}` with `github` context data in a `run:` step
+          could allow an attacker to inject their own code into the runner. This would allow
+          them to steal secrets and code. `github` context data can have arbitrary user input
+          and should be treated as untrusted. Instead, use an intermediate environment
+          variable with `env:` to store the data and use the environment variable in the
+          `run:` script. Be sure to use double-quotes the environment variable, like this:
+          "$ENVVAR".
+          Details: https://sg.run/pkzk
+
+           24┆ run: |
+           25┆   echo "WEBGOAT_TAG_VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
+           26┆   WEBGOAT_MAVEN_VERSION=${{ github.ref_name }}
+           27┆   echo "WEBGOAT_MAVEN_VERSION=${WEBGOAT_MAVEN_VERSION:1}" >> $GITHUB_ENV
+
+    src/main/java/org/owasp/webgoat/lessons/challenges/challenge5/Assignment5.java
+   ❯❯❱ java.spring.security.injection.tainted-sql-string.tainted-sql-string
+          ❰❰ Blocking ❱❱
+          User data flows into this manually-constructed SQL string. User data can be safely
+          inserted into SQL strings using prepared statements or an object-relational mapper
+          (ORM). Manually-constructed SQL strings is a possible indicator of SQL injection,
+          which could let an attacker steal or manipulate data from the database. Instead, use
+          prepared statements (`connection.PreparedStatement`) or a safe library.
+          Details: https://sg.run/9rzz
+
+           45┆ "select password from challenge_users where userid = '"
+           46┆     + username_login
+           47┆     + "' and password = '"
+           48┆     + password_login
+           49┆     + "'");
+
+   ❯❯❱ java.lang.security.audit.formatted-sql-string.formatted-sql-string
+          ❰❰ Blocking ❱❱
+          Detected a formatted string in a SQL statement. This could lead to SQL injection if
+          variables in the SQL statement are not properly sanitized. Use a prepared statements
+          (java.sql.PreparedStatement) instead. You can obtain a PreparedStatement using
+          'connection.prepareStatement'.
+          Details: https://sg.run/OPXp
+
+           50┆ ResultSet resultSet = statement.executeQuery();
+
+    src/main/java/org/owasp/webgoat/lessons/cryptography/EncodingAssignment.java
+    ❯❱ java.lang.security.audit.tainted-session-from-http-request.tainted-session-from-http-request
+          ❰❰ Blocking ❱❱
+          Detected input from a HTTPServletRequest going into a session command, like
+          `setAttribute`. User input into such a command could lead to an attacker inputting
+          malicious code into your session parameters, blurring the line between what's
+          trusted and untrusted, and therefore leading to a trust boundary violation. This
+          could lead to programmers trusting unvalidated data. Instead, thoroughly sanitize
+          user input before passing it into such function calls.
+          Details: https://sg.run/QbDZ
+
+           39┆ request.getSession().setAttribute("basicAuth", basicAuth);
+
+    src/main/java/org/owasp/webgoat/lessons/cryptography/HashingAssignment.java
+    ❯❱ java.lang.security.audit.crypto.use-of-md5.use-of-md5
+          ❰❰ Blocking ❱❱
+          Detected MD5 hash algorithm which is considered insecure. MD5 is not collision
+          resistant and is therefore not suitable as a cryptographic signature. Use HMAC
+          instead.
+          Details: https://sg.run/ryJn
+
+           ▶▶┆ Autofix ▶ "SHA-512"
+           39┆ MessageDigest md = MessageDigest.getInstance("MD5");
+
+    src/main/java/org/owasp/webgoat/lessons/jwt/claimmisuse/JWTHeaderJKUEndpoint.java
+   ❯❯❱ java.spring.security.injection.tainted-url-host.tainted-url-host
+          ❰❰ Blocking ❱❱
+          User data flows into the host portion of this manually-constructed URL. This could
+          allow an attacker to send data to their own server, potentially exposing sensitive
+          data such as cookies or authorization information sent with this request. They could
+          also probe internal servers or other resources that the server running this code can
+          access. (This is called server-side request forgery, or SSRF.) Do not allow
+          arbitrary hosts. Instead, create an allowlist for approved hosts, hardcode the
+          correct host, or ensure that the user data can only affect the path or parameters.
+          Details: https://sg.run/vkYn
+
+           57┆ var jwkProvider = new JwkProviderBuilder(new
+               URL(jku.asString())).build();
+
+    src/main/java/org/owasp/webgoat/lessons/openredirect/OpenRedirectRealRedirect.java
+    ❯❱ java.spring.security.audit.spring-unvalidated-redirect.spring-unvalidated-redirect
+          ❰❰ Blocking ❱❱
+          Application redirects a user to a destination URL specified by a user supplied
+          parameter that is not validated.
+          Details: https://sg.run/9oXz
+
+           18┆ @GetMapping("/OpenRedirect/realRedirect")
+           19┆ public ModelAndView real(@RequestParam("url") String url) {
+           20┆   // Intentionally vulnerable: no validation
+           21┆   return new ModelAndView("redirect:" + url);
+           22┆ }
+
+    src/main/java/org/owasp/webgoat/lessons/pathtraversal/ProfileUploadRetrieval.java
+   ❯❯❱ java.lang.security.httpservlet-path-traversal.httpservlet-path-traversal
+          ❰❰ Blocking ❱❱
+          Detected a potential path traversal. A malicious actor could control the location of
+          this file, to include going backwards in the directory with '../'. To address this,
+          ensure that user-controlled variables in file paths are sanitized. You may also
+          consider using a utility method such as
+          org.apache.commons.io.FilenameUtils.getName(...) to only retrieve the file name from
+          the path.
+          Details: https://sg.run/oxXN
+
+          100┆ var catPicture =
+          101┆     new File(catPicturesDirectory, (id == null ? RandomUtils.nextInt(1,
+               11) : id) + ".jpg");
+
+
+  src/main/java/org/owasp/webgoat/lessons/sqlinjection/advanced/SqlInjectionChallenge.java
+   ❯❯❱ java.spring.security.injection.tainted-sql-string.tainted-sql-string
+          ❰❰ Blocking ❱❱
+          User data flows into this manually-constructed SQL string. User data can be safely
+          inserted into SQL strings using prepared statements or an object-relational mapper
+          (ORM). Manually-constructed SQL strings is a possible indicator of SQL injection,
+          which could let an attacker steal or manipulate data from the database. Instead, use
+          prepared statements (`connection.PreparedStatement`) or a safe library.
+          Details: https://sg.run/9rzz
+
+           60┆ "select userid from sql_challenge_users where userid = '" + username +
+               "'";
+
+   ❯❯❱ java.lang.security.audit.formatted-sql-string.formatted-sql-string
+          ❰❰ Blocking ❱❱
+          Detected a formatted string in a SQL statement. This could lead to SQL injection if
+          variables in the SQL statement are not properly sanitized. Use a prepared statements
+          (java.sql.PreparedStatement) instead. You can obtain a PreparedStatement using
+          'connection.prepareStatement'.
+          Details: https://sg.run/OPXp
+
+           62┆ ResultSet resultSet = statement.executeQuery(checkUserQuery);
+
+
+  src/main/java/org/owasp/webgoat/lessons/sqlinjection/introduction/SqlInjectionLesson10.java
+   ❯❯❱ java.lang.security.audit.formatted-sql-string.formatted-sql-string
+          ❰❰ Blocking ❱❱
+          Detected a formatted string in a SQL statement. This could lead to SQL injection if
+          variables in the SQL statement are not properly sanitized. Use a prepared statements
+          (java.sql.PreparedStatement) instead. You can obtain a PreparedStatement using
+          'connection.prepareStatement'.
+          Details: https://sg.run/OPXp
+
+           56┆ ResultSet results = statement.executeQuery(query);
+
+
+  src/main/java/org/owasp/webgoat/lessons/sqlinjection/introduction/SqlInjectionLesson5a.java
+   ❯❯❱ java.lang.security.audit.formatted-sql-string.formatted-sql-string
+          ❰❰ Blocking ❱❱
+          Detected a formatted string in a SQL statement. This could lead to SQL injection if
+          variables in the SQL statement are not properly sanitized. Use a prepared statements
+          (java.sql.PreparedStatement) instead. You can obtain a PreparedStatement using
+          'connection.prepareStatement'.
+          Details: https://sg.run/OPXp
+
+           52┆ ResultSet results = statement.executeQuery(query);
+
+
+  src/main/java/org/owasp/webgoat/lessons/sqlinjection/introduction/SqlInjectionLesson5b.java
+   ❯❯❱ java.lang.security.audit.formatted-sql-string.formatted-sql-string
+          ❰❰ Blocking ❱❱
+          Detected a formatted string in a SQL statement. This could lead to SQL injection if
+          variables in the SQL statement are not properly sanitized. Use a prepared statements
+          (java.sql.PreparedStatement) instead. You can obtain a PreparedStatement using
+          'connection.prepareStatement'.
+          Details: https://sg.run/OPXp
+
+           69┆ ResultSet results = query.executeQuery();
+
+
+  src/main/java/org/owasp/webgoat/lessons/sqlinjection/introduction/SqlInjectionLesson8.java
+   ❯❯❱ java.lang.security.audit.formatted-sql-string.formatted-sql-string
+          ❰❰ Blocking ❱❱
+          Detected a formatted string in a SQL statement. This could lead to SQL injection if
+          variables in the SQL statement are not properly sanitized. Use a prepared statements
+          (java.sql.PreparedStatement) instead. You can obtain a PreparedStatement using
+          'connection.prepareStatement'.
+          Details: https://sg.run/OPXp
+
+           62┆ ResultSet results = statement.executeQuery(query);
+            ⋮┆----------------------------------------
+          142┆ statement.executeUpdate(logQuery);
+
+
+  src/main/java/org/owasp/webgoat/lessons/sqlinjection/introduction/SqlInjectionLesson9.java
+   ❯❯❱ java.lang.security.audit.formatted-sql-string.formatted-sql-string
+          ❰❰ Blocking ❱❱
+          Detected a formatted string in a SQL statement. This could lead to SQL injection if
+          variables in the SQL statement are not properly sanitized. Use a prepared statements
+          (java.sql.PreparedStatement) instead. You can obtain a PreparedStatement using
+          'connection.prepareStatement'.
+          Details: https://sg.run/OPXp
+
+           65┆ statement.execute(queryInjection);
+
+    src/main/java/org/owasp/webgoat/lessons/sqlinjection/mitigation/Servers.java
+   ❯❯❱ java.spring.security.injection.tainted-sql-string.tainted-sql-string
+          ❰❰ Blocking ❱❱
+          User data flows into this manually-constructed SQL string. User data can be safely
+          inserted into SQL strings using prepared statements or an object-relational mapper
+          (ORM). Manually-constructed SQL strings is a possible indicator of SQL injection,
+          which could let an attacker steal or manipulate data from the database. Instead, use
+          prepared statements (`connection.PreparedStatement`) or a safe library.
+          Details: https://sg.run/9rzz
+
+           51┆ "select id, hostname, ip, mac, status, description from SERVERS where
+               status <> 'out"
+           52┆     + " of order' order by "
+           53┆     + column)) {
+
+    src/main/java/org/owasp/webgoat/webwolf/FileServer.java
+   ❯❯❱ java.spring.security.injection.tainted-file-path.tainted-file-path
+          ❰❰ Blocking ❱❱
+          Detected user input controlling a file path. An attacker could control the location
+          of this file, to include going backwards in the directory with '../'. To address
+          this, ensure that user-controlled variables in file paths are sanitized. You may
+          also consider using a utility method such as
+          org.apache.commons.io.FilenameUtils.getName(...) to only retrieve the file name from
+          the path.
+          Details: https://sg.run/x9o0
+
+           79┆ log.debug("File saved to {}", new File(destinationDir,
+               multipartFile.getOriginalFilename()));
+
+    src/main/resources/application-webgoat.properties
+    ❯❱ java.spring.security.audit.spring-actuator-non-health-enabled.spring-actuator-dangerous-
+       endpoints-enabled
+          ❰❰ Blocking ❱❱
+          Spring Boot Actuators "env, health,configprops" are enabled. Depending on the
+          actuators, this can pose a significant security risk. Please double-check if the
+          actuators are needed and properly secured.
+          Details: https://sg.run/5g23
+
+           73┆ management.endpoints.web.exposure.include=env, health,configprops
+
+    src/main/resources/lessons/clientsidefiltering/html/ClientSideFiltering.html
+    ❯❱ html.security.plaintext-http-link.plaintext-http-link
+          ❰❰ Blocking ❱❱
+          This link points to a plaintext HTTP URL. Prefer an encrypted HTTPS URL if possible.
+          Details: https://sg.run/RA5q
+
+           96┆ <h5 style="color:#337ab7"><a href="http://www.samsung.com">Samsung</a> ·
+
+
+
+┌──────────────┐
+│ Scan Summary │
+└──────────────┘
+✅ Scan completed successfully.
+ • Findings: 20 (20 blocking)
+ • Rules run: 160
+ • Targets scanned: 974
+ • Parsed lines: ~99.9%
+ • Scan skipped:
+   ◦ Files larger than  files 1.0 MB: 2
+   ◦ Files matching .semgrepignore patterns: 102
+ • Scan was limited to files tracked by git
+ • For a detailed list of skipped files and lines, run semgrep with the --verbose flag
+Ran 160 rules on 974 files: 20 findings.
+💎 Missed out on 1803 pro rules since you aren't logged in!
+⚡ Supercharge Semgrep OSS when you create a free account at https://sg.run/rules.
