@@ -1,0 +1,290 @@
+rakesh@devsecops-research-vm:~$ trivy image webgoat/webgoat --severity CRITICAL,HIGH --timeout 15m
+2026-06-22T22:46:39Z    INFO    [vuln] Vulnerability scanning is enabled
+2026-06-22T22:46:39Z    INFO    [secret] Secret scanning is enabled
+2026-06-22T22:46:39Z    INFO    [secret] If your scanning is slow, please try '--scanners vuln' to disable secret scanning
+2026-06-22T22:46:39Z    INFO    [secret] Please see https://trivy.dev/docs/v0.71/guide/scanner/secret#recommendation for faster secret detection
+2026-06-22T22:51:11Z    INFO    [javadb] Downloading Java DB...
+2026-06-22T22:51:11Z    INFO    [javadb] Downloading artifact...        repo="mirror.gcr.io/aquasec/trivy-java-db:1"
+2026-06-22T22:51:14Z    WARN    [secret] The size of the scanned file is too large. It is recommended to use `--skip-files` for this file to avoid high memory consumption.  file_path="home/webgoat/webgoat.jar" size (MB)=142
+883.57 MiB / 883.57 MiB [------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------->] 100.00% 0 B p/s ETA883.57 MiB / 883.57 MiB [----------------------------------------------------------------] 100.00% 1.90 MiB p/s 7m45s
+2026-06-22T22:59:01Z    INFO    [javadb] Artifact successfully downloaded       repo="mirror.gcr.io/aquasec/trivy-java-db:1"
+2026-06-22T22:59:01Z    INFO    [javadb] Java DB is cached for 3 days. If you want to update the database more frequently, "trivy clean --java-db" command clears the DB cache.
+2026-06-22T22:59:22Z    INFO    Detected OS     family="ubuntu" version="24.04"
+2026-06-22T22:59:22Z    INFO    [ubuntu] Detecting vulnerabilities...   os_version="24.04" pkg_num=135
+2026-06-22T22:59:22Z    INFO    Number of language-specific files       num=1
+2026-06-22T22:59:22Z    INFO    [jar] Detecting vulnerabilities...
+2026-06-22T22:59:22Z    INFO    Table result includes only package filenames. Use '--format json' option to get the full path to the package file.
+
+Report Summary
+
+┌────────────────────────────────┬────────┬─────────────────┬─────────┐
+│             Target             │  Type  │ Vulnerabilities │ Secrets │
+├────────────────────────────────┼────────┼─────────────────┼─────────┤
+│ webgoat/webgoat (ubuntu 24.04) │ ubuntu │       11        │    -    │
+├────────────────────────────────┼────────┼─────────────────┼─────────┤
+│ home/webgoat/webgoat.jar       │  jar   │       51        │    -    │
+└────────────────────────────────┴────────┴─────────────────┴─────────┘
+Legend:
+- '-': Not scanned
+- '0': Clean (no security findings detected)
+
+
+webgoat/webgoat (ubuntu 24.04)
+
+Total: 11 (HIGH: 11, CRITICAL: 0)
+
+┌─────────────┬────────────────┬──────────┬────────┬───────────────────┬────────────────────┬──────────────────────────────────────────────────────────────┐
+│   Library   │ Vulnerability  │ Severity │ Status │ Installed Version │   Fixed Version    │                            Title                             │
+├─────────────┼────────────────┼──────────┼────────┼───────────────────┼────────────────────┼──────────────────────────────────────────────────────────────┤
+│ dirmngr     │ CVE-2025-68973 │ HIGH     │ fixed  │ 2.4.4-2ubuntu17   │ 2.4.4-2ubuntu17.4  │ GnuPG: GnuPG: Information disclosure and potential arbitrary │
+│             │                │          │        │                   │                    │ code execution via out-of-bounds write...                    │
+│             │                │          │        │                   │                    │ https://avd.aquasec.com/nvd/cve-2025-68973                   │
+├─────────────┤                │          │        │                   │                    │                                                              │
+│ gnupg       │                │          │        │                   │                    │                                                              │
+│             │                │          │        │                   │                    │                                                              │
+│             │                │          │        │                   │                    │                                                              │
+├─────────────┤                │          │        │                   │                    │                                                              │
+│ gnupg-utils │                │          │        │                   │                    │                                                              │
+│             │                │          │        │                   │                    │                                                              │
+│             │                │          │        │                   │                    │                                                              │
+├─────────────┤                │          │        │                   │                    │                                                              │
+│ gpg         │                │          │        │                   │                    │                                                              │
+│             │                │          │        │                   │                    │                                                              │
+│             │                │          │        │                   │                    │                                                              │
+├─────────────┤                │          │        │                   │                    │                                                              │
+│ gpg-agent   │                │          │        │                   │                    │                                                              │
+│             │                │          │        │                   │                    │                                                              │
+│             │                │          │        │                   │                    │                                                              │
+├─────────────┤                │          │        │                   │                    │                                                              │
+│ gpgconf     │                │          │        │                   │                    │                                                              │
+│             │                │          │        │                   │                    │                                                              │
+│             │                │          │        │                   │                    │                                                              │
+├─────────────┤                │          │        │                   │                    │                                                              │
+│ gpgsm       │                │          │        │                   │                    │                                                              │
+│             │                │          │        │                   │                    │                                                              │
+│             │                │          │        │                   │                    │                                                              │
+├─────────────┤                │          │        │                   │                    │                                                              │
+│ gpgv        │                │          │        │                   │                    │                                                              │
+│             │                │          │        │                   │                    │                                                              │
+│             │                │          │        │                   │                    │                                                              │
+├─────────────┤                │          │        │                   │                    │                                                              │
+│ keyboxd     │                │          │        │                   │                    │                                                              │
+│             │                │          │        │                   │                    │                                                              │
+│             │                │          │        │                   │                    │                                                              │
+├─────────────┼────────────────┤          │        ├───────────────────┼────────────────────┼──────────────────────────────────────────────────────────────┤
+│ libssl3t64  │ CVE-2026-45447 │          │        │ 3.0.13-0ubuntu3.4 │ 3.0.13-0ubuntu3.11 │ openssl: Heap Use-After-Free in OpenSSL PKCS7_verify()       │
+│             │                │          │        │                   │                    │ https://avd.aquasec.com/nvd/cve-2026-45447                   │
+├─────────────┤                │          │        │                   │                    │                                                              │
+│ openssl     │                │          │        │                   │                    │                                                              │
+│             │                │          │        │                   │                    │                                                              │
+└─────────────┴────────────────┴──────────┴────────┴───────────────────┴────────────────────┴──────────────────────────────────────────────────────────────┘
+
+Java (jar)
+
+Total: 51 (HIGH: 39, CRITICAL: 12)
+
+┌─────────────────────────────────────────────────────────┬────────────────┬──────────┬────────┬───────────────────┬──────────────────────────────────────────────────────┬──────────────────────────────────────────────────────────────┐
+│                         Library                         │ Vulnerability  │ Severity │ Status │ Installed Version │                    Fixed Version                     │                            Title                             │
+├─────────────────────────────────────────────────────────┼────────────────┼──────────┼────────┼───────────────────┼──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│ com.thoughtworks.xstream:xstream (webgoat.jar)          │ CVE-2013-7285  │ CRITICAL │ fixed  │ 1.4.5             │ 1.4.7, 1.4.11                                        │ XStream: remote code execution due to insecure XML           │
+│                                                         │                │          │        │                   │                                                      │ deserialization                                              │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2013-7285                    │
+│                                                         ├────────────────┼──────────┤        │                   ├──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2016-3674  │ HIGH     │        │                   │ 1.4.9                                                │ XStream: enabled processing of external entities             │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2016-3674                    │
+│                                                         ├────────────────┤          │        │                   ├──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2017-7957  │          │        │                   │ 1.4.10                                               │ XStream: DoS when unmarshalling void type                    │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2017-7957                    │
+│                                                         ├────────────────┤          │        │                   ├──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2020-26217 │          │        │                   │ 1.4.14-java7                                         │ XStream: remote code execution due to insecure XML           │
+│                                                         │                │          │        │                   │                                                      │ deserialization when relying on...                           │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2020-26217                   │
+│                                                         ├────────────────┤          │        │                   ├──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2021-21341 │          │        │                   │ 1.4.16                                               │ XStream: allow a remote attacker to cause DoS only by        │
+│                                                         │                │          │        │                   │                                                      │ manipulating the...                                          │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2021-21341                   │
+│                                                         ├────────────────┤          │        │                   ├──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2021-29505 │          │        │                   │ 1.4.17                                               │ XStream: remote command execution attack by manipulating the │
+│                                                         │                │          │        │                   │                                                      │ processed input stream                                       │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2021-29505                   │
+│                                                         ├────────────────┤          │        │                   ├──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2021-39139 │          │        │                   │ 1.4.18                                               │ xstream: Arbitrary code execution via unsafe deserialization │
+│                                                         │                │          │        │                   │                                                      │ of Xalan xsltc.trax.TemplatesImpl                            │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2021-39139                   │
+│                                                         ├────────────────┤          │        │                   │                                                      ├──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2021-39141 │          │        │                   │                                                      │ xstream: Arbitrary code execution via unsafe deserialization │
+│                                                         │                │          │        │                   │                                                      │ of com.sun.xml.internal.ws.client.sei.*                      │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2021-39141                   │
+│                                                         ├────────────────┤          │        │                   │                                                      ├──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2021-39144 │          │        │                   │                                                      │ xstream: Arbitrary code execution via unsafe deserialization │
+│                                                         │                │          │        │                   │                                                      │ of sun.tracing.*                                             │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2021-39144                   │
+│                                                         ├────────────────┤          │        │                   │                                                      ├──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2021-39145 │          │        │                   │                                                      │ xstream: Arbitrary code execution via unsafe deserialization │
+│                                                         │                │          │        │                   │                                                      │ of com.sun.jndi.ldap.LdapBindingEnumeration                  │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2021-39145                   │
+│                                                         ├────────────────┤          │        │                   │                                                      ├──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2021-39146 │          │        │                   │                                                      │ xstream: Arbitrary code execution via unsafe deserialization │
+│                                                         │                │          │        │                   │                                                      │ of javax.swing.UIDefaults$ProxyLazyValue                     │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2021-39146                   │
+│                                                         ├────────────────┤          │        │                   │                                                      ├──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2021-39147 │          │        │                   │                                                      │ xstream: Arbitrary code execution via unsafe deserialization │
+│                                                         │                │          │        │                   │                                                      │ of com.sun.jndi.ldap.LdapSearchEnumeration                   │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2021-39147                   │
+│                                                         ├────────────────┤          │        │                   │                                                      ├──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2021-39148 │          │        │                   │                                                      │ xstream: Arbitrary code execution via unsafe deserialization │
+│                                                         │                │          │        │                   │                                                      │ of com.sun.jndi.toolkit.dir.ContextEnumerator                │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2021-39148                   │
+│                                                         ├────────────────┤          │        │                   │                                                      ├──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2021-39149 │          │        │                   │                                                      │ xstream: Arbitrary code execution via unsafe deserialization │
+│                                                         │                │          │        │                   │                                                      │ of com.sun.corba.*                                           │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2021-39149                   │
+│                                                         ├────────────────┤          │        │                   │                                                      ├──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2021-39150 │          │        │                   │                                                      │ xstream: Server-side request forgery (SSRF) via unsafe       │
+│                                                         │                │          │        │                   │                                                      │ deserialization of com.sun.xml.internal.ws.client.sei.*      │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2021-39150                   │
+│                                                         ├────────────────┤          │        │                   │                                                      ├──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2021-39151 │          │        │                   │                                                      │ xstream: Arbitrary code execution via unsafe deserialization │
+│                                                         │                │          │        │                   │                                                      │ of com.sun.jndi.ldap.LdapBindingEnumeration                  │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2021-39151                   │
+│                                                         ├────────────────┤          │        │                   │                                                      ├──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2021-39152 │          │        │                   │                                                      │ xstream: Server-side request forgery (SSRF) via unsafe       │
+│                                                         │                │          │        │                   │                                                      │ deserialization of                                           │
+│                                                         │                │          │        │                   │                                                      │ jdk.nashorn.internal.runtime.Source$URLData                  │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2021-39152                   │
+│                                                         ├────────────────┤          │        │                   │                                                      ├──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2021-39153 │          │        │                   │                                                      │ xstream: Arbitrary code execution via unsafe deserialization │
+│                                                         │                │          │        │                   │                                                      │ of Xalan xsltc.trax.TemplatesImpl                            │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2021-39153                   │
+│                                                         ├────────────────┤          │        │                   │                                                      ├──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2021-39154 │          │        │                   │                                                      │ xstream: Arbitrary code execution via unsafe deserialization │
+│                                                         │                │          │        │                   │                                                      │ of javax.swing.UIDefaults$ProxyLazyValue                     │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2021-39154                   │
+│                                                         ├────────────────┤          │        │                   ├──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2021-43859 │          │        │                   │ 1.4.19                                               │ xstream: Injecting highly recursive collections or maps can  │
+│                                                         │                │          │        │                   │                                                      │ cause a DoS                                                  │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2021-43859                   │
+│                                                         ├────────────────┤          │        │                   ├──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2022-40151 │          │        │                   │ 1.4.20                                               │ xstream: Xstream to serialise XML data was vulnerable to     │
+│                                                         │                │          │        │                   │                                                      │ Denial of Service...                                         │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2022-40151                   │
+│                                                         ├────────────────┤          │        │                   │                                                      ├──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2022-41966 │          │        │                   │                                                      │ xstream: Denial of Service by injecting recursive            │
+│                                                         │                │          │        │                   │                                                      │ collections or maps based on...                              │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2022-41966                   │
+│                                                         ├────────────────┤          │        │                   ├──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2024-47072 │          │        │                   │ 1.4.21                                               │ com.thoughtworks.xstream: XStream is vulnerable to a Denial  │
+│                                                         │                │          │        │                   │                                                      │ of Service attack due to...                                  │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2024-47072                   │
+├─────────────────────────────────────────────────────────┼────────────────┼──────────┤        ├───────────────────┼──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│ org.apache.tomcat.embed:tomcat-embed-core (webgoat.jar) │ CVE-2026-41293 │ CRITICAL │        │ 10.1.36           │ 9.0.118, 10.1.55, 11.0.22                            │ tomcat-coyote: Apache Tomcat: HTTP/2 request headers not     │
+│                                                         │                │          │        │                   │                                                      │ validated                                                    │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2026-41293                   │
+│                                                         ├────────────────┤          │        │                   │                                                      ├──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2026-43512 │          │        │                   │                                                      │ tomcat-coyote: Apache Tomcat: Authentication bypass via      │
+│                                                         │                │          │        │                   │                                                      │ digest authentication                                        │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2026-43512                   │
+│                                                         ├────────────────┤          │        │                   │                                                      ├──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2026-43515 │          │        │                   │                                                      │ tomcat-coyote: tomcat: Improper Authorization allows         │
+│                                                         │                │          │        │                   │                                                      │ security bypass                                              │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2026-43515                   │
+│                                                         ├────────────────┼──────────┤        │                   ├──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2025-48988 │ HIGH     │        │                   │ 11.0.8, 10.1.42, 9.0.106                             │ tomcat: Apache Tomcat DoS in multipart upload                │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2025-48988                   │
+│                                                         ├────────────────┤          │        │                   ├──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2025-48989 │          │        │                   │ 11.0.10, 10.1.44, 9.0.108                            │ tomcat: http/2 "MadeYouReset" DoS attack through HTTP/2      │
+│                                                         │                │          │        │                   │                                                      │ control frames                                               │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2025-48989                   │
+│                                                         ├────────────────┤          │        │                   ├──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2025-52520 │          │        │                   │ 11.0.9, 10.1.43, 9.0.107                             │ tomcat: Apache Tomcat denial of service                      │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2025-52520                   │
+│                                                         ├────────────────┤          │        │                   ├──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2025-53506 │          │        │                   │ 9.0.107, 10.1.43, 11.0.9                             │ tomcat: Apache Tomcat denial of service                      │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2025-53506                   │
+│                                                         ├────────────────┤          │        │                   ├──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2025-55752 │          │        │                   │ 11.0.11, 10.1.45, 9.0.109                            │ tomcat: org.apache.tomcat/tomcat-catalina: Apache Tomcat:    │
+│                                                         │                │          │        │                   │                                                      │ Directory traversal via rewrite with possible RCE            │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2025-55752                   │
+│                                                         ├────────────────┤          │        │                   ├──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2026-24734 │          │        │                   │ 11.0.18, 10.1.52, 9.0.115                            │ tomcat: Apache Tomcat: Certificate revocation bypass due to  │
+│                                                         │                │          │        │                   │                                                      │ improper OCSP response validation...                         │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2026-24734                   │
+│                                                         ├────────────────┤          │        │                   ├──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2026-24880 │          │        │                   │ 9.0.116, 10.1.52, 11.0.20                            │ Apache Tomcat: Apache Tomcat: HTTP Request/Response          │
+│                                                         │                │          │        │                   │                                                      │ Smuggling via invalid chunk extension                        │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2026-24880                   │
+│                                                         ├────────────────┤          │        │                   ├──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2026-34483 │          │        │                   │ 9.0.116, 10.1.54, 11.0.21                            │ Apache Tomcat: Apache Tomcat: Information disclosure due to  │
+│                                                         │                │          │        │                   │                                                      │ improper encoding in JsonAccessLogValve...                   │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2026-34483                   │
+│                                                         ├────────────────┤          │        │                   ├──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2026-41284 │          │        │                   │ 9.0.118, 10.1.55, 11.0.22                            │ Allocation of Resources Without Limits or Throttling         │
+│                                                         │                │          │        │                   │                                                      │ vulnerability in ...                                         │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2026-41284                   │
+│                                                         ├────────────────┤          │        │                   │                                                      ├──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2026-42498 │          │        │                   │                                                      │ tomcat-coyote: Apache Tomcat: Information disclosure due to  │
+│                                                         │                │          │        │                   │                                                      │ HTTP Authentication Header exposure during...                │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2026-42498                   │
+│                                                         ├────────────────┤          │        │                   │                                                      ├──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2026-43513 │          │        │                   │                                                      │ Improper Handling of Case Sensitivity vulnerability in       │
+│                                                         │                │          │        │                   │                                                      │ LockOutRealm in ...                                          │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2026-43513                   │
+├─────────────────────────────────────────────────────────┼────────────────┤          │        ├───────────────────┼──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│ org.bitbucket.b_c:jose4j (webgoat.jar)                  │ CVE-2024-29371 │          │        │ 0.9.3             │ 0.9.6                                                │ jose4j: jose4j: Denial of Service via malicious JSON Web     │
+│                                                         │                │          │        │                   │                                                      │ Encryption (JWE) token...                                    │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2024-29371                   │
+├─────────────────────────────────────────────────────────┼────────────────┤          │        ├───────────────────┼──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│ org.springframework.boot:spring-boot (webgoat.jar)      │ CVE-2025-22235 │          │        │ 3.4.3             │ 3.3.11, 3.4.5                                        │ org.springframework.boot/spring-boot: Spring Boot            │
+│                                                         │                │          │        │                   │                                                      │ EndpointRequest.to() creates wrong matcher if actuator       │
+│                                                         │                │          │        │                   │                                                      │ endpoint is not...                                           │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2025-22235                   │
+│                                                         ├────────────────┤          │        │                   ├──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2026-40973 │          │        │                   │ 4.0.6, 3.5.14                                        │ Spring Boot: Spring Boot: Arbitrary Code Execution and       │
+│                                                         │                │          │        │                   │                                                      │ Session Hijacking via predictable...                         │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2026-40973                   │
+├─────────────────────────────────────────────────────────┼────────────────┼──────────┤        ├───────────────────┼──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│ org.springframework.security:spring-security-core       │ CVE-2025-41232 │ CRITICAL │        │ 6.4.3             │ 6.4.6                                                │ Spring-Security: Spring Security authorization bypass for    │
+│ (webgoat.jar)                                           │                │          │        │                   │                                                      │ method security annotations on private methods...            │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2025-41232                   │
+│                                                         ├────────────────┼──────────┤        │                   ├──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2025-41248 │ HIGH     │        │                   │ 6.4.10, 6.5.4                                        │ org.springframework.security/spring-security-core: Spring    │
+│                                                         │                │          │        │                   │                                                      │ Security authorization bypass                                │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2025-41248                   │
+├─────────────────────────────────────────────────────────┼────────────────┤          │        │                   ├──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│ org.springframework.security:spring-security-crypto     │ CVE-2025-22228 │          │        │                   │ 6.3.8, 6.4.4, 6.2.10, 6.1.14, 6.0.16, 5.8.18, 5.7.16 │ spring-security-core: Spring Security BCryptPasswordEncoder  │
+│ (webgoat.jar)                                           │                │          │        │                   │                                                      │ does not enforce maximum password length                     │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2025-22228                   │
+├─────────────────────────────────────────────────────────┼────────────────┼──────────┤        │                   ├──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│ org.springframework.security:spring-security-web        │ CVE-2026-22732 │ CRITICAL │        │                   │ 6.5.9, 7.0.4                                         │ Spring Security: Spring Security: Security policy bypass and │
+│ (webgoat.jar)                                           │                │          │        │                   │                                                      │ information disclosure due to...                             │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2026-22732                   │
+├─────────────────────────────────────────────────────────┼────────────────┼──────────┤        ├───────────────────┼──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│ org.springframework:spring-core (webgoat.jar)           │ CVE-2025-41249 │ HIGH     │        │ 6.2.3             │ 6.2.11                                               │ org.springframework/spring-core: Spring Framework Annotation │
+│                                                         │                │          │        │                   │                                                      │ Detection Vulnerability                                      │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2025-41249                   │
+├─────────────────────────────────────────────────────────┼────────────────┼──────────┤        ├───────────────────┼──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│ org.thymeleaf:thymeleaf (webgoat.jar)                   │ CVE-2026-40477 │ CRITICAL │        │ 3.1.2.RELEASE     │ 3.1.4.RELEASE                                        │ thymeleaf: Thymeleaf: Server-Side Template Injection via     │
+│                                                         │                │          │        │                   │                                                      │ security bypass in expression execution                      │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2026-40477                   │
+│                                                         ├────────────────┤          │        │                   │                                                      ├──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2026-40478 │          │        │                   │                                                      │ thymeleaf: Thymeleaf: Server-Side Template Injection via     │
+│                                                         │                │          │        │                   │                                                      │ expression execution bypass                                  │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2026-40478                   │
+│                                                         ├────────────────┤          │        │                   ├──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2026-41901 │          │        │                   │ 3.1.5.RELEASE                                        │ Sandboxed Thymeleaf expressions vulnerable to improper       │
+│                                                         │                │          │        │                   │                                                      │ recognition of unauthorized syntax patterns                  │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2026-41901                   │
+├─────────────────────────────────────────────────────────┼────────────────┤          │        │                   ├──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│ org.thymeleaf:thymeleaf-spring6 (webgoat.jar)           │ CVE-2026-40477 │          │        │                   │ 3.1.4.RELEASE                                        │ thymeleaf: Thymeleaf: Server-Side Template Injection via     │
+│                                                         │                │          │        │                   │                                                      │ security bypass in expression execution                      │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2026-40477                   │
+│                                                         ├────────────────┤          │        │                   │                                                      ├──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2026-40478 │          │        │                   │                                                      │ thymeleaf: Thymeleaf: Server-Side Template Injection via     │
+│                                                         │                │          │        │                   │                                                      │ expression execution bypass                                  │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2026-40478                   │
+│                                                         ├────────────────┤          │        │                   ├──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│                                                         │ CVE-2026-41901 │          │        │                   │ 3.1.5.RELEASE                                        │ Sandboxed Thymeleaf expressions vulnerable to improper       │
+│                                                         │                │          │        │                   │                                                      │ recognition of unauthorized syntax patterns                  │
+│                                                         │                │          │        │                   │                                                      │ https://avd.aquasec.com/nvd/cve-2026-41901                   │
+└─────────────────────────────────────────────────────────┴────────────────┴──────────┴────────┴───────────────────┴──────────────────────────────────────────────────────┴──────────────────────────────────────────────────────────────┘
+rakesh@devsecops-research-vm:~$
