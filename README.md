@@ -1,7 +1,7 @@
-﻿# Comparing Open-Source and Cloud-Native AI/ML Security Tools as a Pre-Pipeline Gate in DevSecOps CI/CD Pipelines: A Study of SME Suitability
+# Comparing Open-Source and Cloud-Native AI/ML Security Tools as a Pre-Pipeline Gate in DevSecOps CI/CD Pipelines: A Study of SME Suitability
 
-MSc Research Project - TU Dublin, Computing with DevOps
-**Name:** Rakesh Uday Kumar (A00047386)
+MSc Research Project — TU Dublin, Computing with DevOps
+**Student:** Rakesh Uday Kumar (A00047386)
 **Supervisor:** Dr. Shivani Jaswal
 **Module:** RESH-H6002-53441-TU437-PT-202520
 
@@ -72,22 +72,41 @@ DSR was selected because this project builds and evaluates a technical artefact,
 - `metrics/results/` — raw tool output, screenshots, comparison tables
 - `vulnerabilities/` — documentation of deliberately introduced vulnerabilities and their purpose
 
+### Results So Far
+
+| Tool | Findings | Full Results |
+|---|---|---|
+| Semgrep | 20 (code-level: SQL injection, path traversal, insecure crypto, CI/CD shell injection) | `metrics/results/semgrep-results.md` |
+| Trivy | 62 (dependency/OS-level: outdated XStream, Tomcat, Spring Security, Thymeleaf) | `metrics/results/trivy-results.md` |
+
 ---
 
 ## Project Timeline
 
-| Phase | Dates        | Focus                                            |
-| ----- | ------------ | ------------------------------------------------ |
-| 1     | 2–15 June   | Environment setup, open-source stack build       |
-| 2     | 16–30 June  | Open-source stack testing and results collection |
-| 3     | 1–20 July   | Azure stack testing and results collection       |
-| 4     | 21–31 July  | Comparative analysis                             |
-| 5     | 1–31 August | Write-up and submission                          |
+| Phase | Dates | Focus |
+|---|---|---|
+| 1 | 2–15 June | Environment setup, open-source stack build |
+| 2 | 16–30 June | Open-source stack testing and results collection |
+| 3 | 1–20 July | Azure stack testing and results collection |
+| 4 | 21–31 July | Comparative analysis |
+| 5 | 1–31 August | Write-up and submission |
 
 ---
 
 ## Status
 
-Environment setup complete: Ubuntu VM provisioned, Docker installed, OWASP WebGoat deployed and verified accessible. See `docs/implementation-log.md` for full setup details and evidence.
+| Phase | Status |
+|---|---|
+| Environment setup (Ubuntu VM, Docker, WebGoat deployment) | ✅ Complete |
+| Open-source stack — Semgrep (static code analysis) | ✅ Complete — 20 findings against WebGoat source code |
+| Open-source stack — Trivy (container/dependency scanning) | ✅ Complete — 62 findings against WebGoat Docker image |
+| Open-source stack — Trufflehog (secret detection) | ⬜ Not started |
+| Open-source stack — Falco (runtime anomaly detection) | ⬜ Not started |
+| Open-source stack — OPA (policy enforcement) | ⬜ Not started |
+| Baseline GitHub Actions pipeline (no security tools) | ⬜ Not started |
+| Azure cloud-native stack | ⬜ Not started |
+| Comparative analysis | ⬜ Not started |
 
-**Next step:** Integration of Semgrep as the first open-source tool, with results captured against WebGoat's source code.
+See `docs/implementation-log.md` for full setup details and `metrics/results/` for tool-by-tool findings and analysis.
+
+**Next step:** Integration of Trufflehog for secret detection against WebGoat's source code.

@@ -142,3 +142,52 @@ docker run -d -p 8080:8080 -p 9090:9090 --name webgoat webgoat/webgoat
 1. Create GitHub repository structure
 2. Build baseline GitHub Actions pipeline (no security tools — control condition)
 3. Integrate Semgrep and capture first detection results
+
+---
+
+## 22 June 2026 (continued) — Semgrep Integration (Tool 1 of 5)
+
+**Objective:** Install Semgrep and run a static code analysis scan against WebGoat's source code to capture the first detection capability data point for the open-source stack.
+
+**Steps performed:**
+1. Cloned WebGoat source repository (`github.com/WebGoat/WebGoat`) into the VM — 48,813 objects, full Java/Spring Boot codebase.
+2. Installed Semgrep via `pip3 install semgrep --break-system-packages`. Required adding `~/.local/bin` to `PATH` (`source ~/.bashrc`) since `pip3` installed scripts there by default.
+3. Ran `semgrep --config=p/owasp-top-ten` against the WebGoat source tree.
+
+**Result:** 20 findings (all marked Blocking) across 974 git-tracked files, using 160 applicable rules from the free Community ruleset (544 rules total). Findings spanned SQL injection (9), path traversal (2), insecure cryptography (MD5 usage), SSRF, open redirect, a session/trust-boundary issue, a Spring Actuator misconfiguration, an insecure HTTP link, and — notably — a shell injection vulnerability in WebGoat's own `.github/workflows/release.yml` GitHub Actions file, directly relevant to the CI/CD pipeline security risks this research investigates.
+
+**Issues encountered:** Three large third-party JavaScript libraries (`ace.js`, `jquery-ui-1.10.4.js`, `wysihtml5-0.3.0.js`) triggered scan timeouts and were excluded from full rule coverage after three timeout errors each.
+
+**Full results and analysis:** `metrics/results/semgrep-results.md`, raw output `metrics/results/semgrep-findings-readable.txt`
+
+**Relevance to research:** First concrete data point for Metric 1 (Detection Capability — 20 findings, correctly identifying several of WebGoat's deliberately introduced weaknesses) and Metric 4 (Pipeline Overhead — 78 seconds for 974 files). The free-tier rule limitation (1,803 Pro rules unavailable without a paid account) is directly relevant to Metric 5 (Cost) and Metric 6 (SME Suitability).
+
+---
+
+## 22 June 2026 (continued) — Trivy Integration (Tool 2 of 5)
+
+**Objective:** Install Trivy and scan the WebGoat Docker image for known CVEs in OS packages and Java dependencies, providing a second, complementary data point to Semgrep's code-level findings.
+
+**Steps performed:**
+1. Attempted install via the official Trivy install script — failed with a DNS resolution error (`Could not resolve host: get.trivy.dev`).
+2. Switched to Trivy's official APT repository as a fallback. Successfully installed Trivy v0.71.2.
+3. Ran `trivy image webgoat/webgoat --severity CRITICAL,HIGH` against the running WebGoat image.
+4. Initial scan failed with `context deadline exceeded` (default 5-minute timeout). Re-ran with `--timeout 15m`.
+
+**Result:** 62 vulnerabilities total — 11 (all HIGH) in the Ubuntu 24.04 OS layer, and 51 (39 HIGH, 12 CRITICAL) in `webgoat.jar`'s Java dependencies. Most significant CRITICAL findings: CVE-2013-7285 (XStream 1.4.5, remote code execution via insecure deserialization), CVE-2026-41293 (Tomcat, HTTP/2 header validation bypass), CVE-2025-41232 (Spring Security Core, authorization bypass), CVE-2026-22732 (Spring Security Web, policy bypass), CVE-2026-40477 (Thymeleaf, server-side template injection).
+
+**Issues encountered:**
+- Official install script unreliable (DNS resolution failure) — required fallback to APT method.
+- Default timeout insufficient for this image's size and complexity — required manual override.
+- First-run database downloads (97 MiB vulnerability DB + 884 MiB Java DB) added approximately 9 minutes of one-time setup overhead before any scanning began. Both databases are cached locally afterward (Java DB cached for 3 days).
+- Secret scanning flagged `webgoat.jar` (142 MB) as inefficient to scan for secrets at that size, recommending `--scanners vuln` to disable secret scanning when only vulnerability data is needed.
+
+**Full results and analysis:** `metrics/results/trivy-results.md`, raw output `metrics/results/trivy-findings-readable.txt`
+
+**Relevance to research:** Demonstrates that Semgrep (code-level analysis) and Trivy (dependency/image-level analysis) are complementary rather than overlapping — zero overlap in vulnerability classes found between the two tools. This is an important methodological point for the final comparative analysis: raw finding counts should not be compared directly across tools without accounting for what layer of the software supply chain each tool actually inspects. The install script failure and timeout issues are concrete, citable evidence for Metric 3 (Setup Complexity).
+
+**Next steps:**
+1. Trufflehog integration (secret detection)
+2. Falco integration (runtime anomaly detection)
+3. OPA integration (policy enforcement)
+4. Build baseline and open-source GitHub Actions pipelines
