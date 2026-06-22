@@ -1,7 +1,7 @@
 ﻿# Comparing Open-Source and Cloud-Native AI/ML Security Tools as a Pre-Pipeline Gate in DevSecOps CI/CD Pipelines: A Study of SME Suitability
 
 MSc Research Project — TU Dublin, Computing with DevOps
-**Student:** Rakesh Uday Kumar (A00047386)
+**Name:** Rakesh Uday Kumar (A00047386)
 **Supervisor:** Dr. Shivani Jaswal
 **Module:** RESH-H6002-53441-TU437-PT-202520
 
