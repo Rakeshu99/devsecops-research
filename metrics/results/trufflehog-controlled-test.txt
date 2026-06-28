@@ -1,0 +1,13 @@
+﻿🐷🔑🐷  TruffleHog. Unearth your secrets. 🐷🔑🐷
+
+2026-06-28T23:11:01Z	info-0	trufflehog	running source	{"source_manager_worker_id": "R3CcL", "with_units": true}
+Found unverified result 🐷🔑❓
+Detector Type: Github
+Decoder Type: PLAIN
+Raw result: ghp_16C7e42F292c6912E7710c838347Ae178B4a
+Version: 2
+Rotation_guide: https://howtorotate.com/docs/tutorials/github/
+File: test-secrets-controlled/fake-credentials.env
+Line: 7
+
+2026-06-28T23:11:02Z	info-0	trufflehog	finished scanning	{"chunks": 1, "bytes": 534, "verified_secrets": 0, "unverified_secrets": 1, "scan_duration": "1.714189589s", "trufflehog_version": "3.95.6", "verification_caching": {"Hits":0,"Misses":1,"HitsWasted":0,"AttemptsSaved":0,"VerificationTimeSpentMS":1667}}

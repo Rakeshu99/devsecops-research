@@ -1,0 +1,26 @@
+﻿🐷🔑🐷  TruffleHog. Unearth your secrets. 🐷🔑🐷
+
+2026-06-28T22:59:35Z	info-0	trufflehog	running source	{"source_manager_worker_id": "eAfDx", "with_units": true}
+Found unverified result 🐷🔑❓
+Detector Type: JWT
+Decoder Type: PLAIN
+Raw result: eyJ0eXAiOiJKV1QiLCJqa3UiOiJodHRwOi8vMTI3LjAuMC4xOjgwODAvV2ViR29hdC9pbWFnZXMvandrcy5qc29uIiwiYWxnIjoiUlMyNTYifQ.eyJpc3MiOiJXZWJHb2F0IFRva2VuIEJ1aWxkZXIiLCJpYXQiOjE3NzczODQ4NjEsImV4cCI6MjIxOTIzNDQ2MSwiYXVkIjoid2ViZ29hdC5vcmciLCJzdWIiOiJqZXJyeUB3ZWJnb2F0LmNvbSIsInVzZXJuYW1lIjoiSmVycnkiLCJFbWFpbCI6ImplcnJ5QHdlYmdvYXQuY29tIiwiUm9sZSI6WyJDYXQiXX0.P6x2mSeN58GVRs6zz3OESnIwqdA9WND1pnBtix8c760j3_V4TPuQylfKA7TIQ7CN8dtTF0hY_5T-toa8VagkHvy27fYBDNK_XTwRjjoQu1U279e7ILuPvj53lkTOL5vtTYl5FGo4yRGXObPHdOka3tFXTO3296XAqUXiNSmLHCKO_rZiNX8zJJssVyUkGXA7cgGKZn_a77kndxsUukGGaZggqm2kBZng2SQbz3-6Lkrav6QU2GTwKXjuRLt852KuCSqpQYSyPoBWn3IuvgolrtUbb_BCsWX5tSKdXPp3Ffe592wDf_j92THukeKhC88Mu4_0KdwkMMovzCeH7YGXOw
+Alg: RS256
+Iss: WebGoat Token Builder
+Iat: 2026-04-28 14:01:01 +0000 UTC
+Exp: 2040-04-28 14:01:01 +0000 UTC
+File: src/main/resources/lessons/jwt/html/JWT.html
+Line: 323
+
+Found unverified result 🐷🔑❓
+Detector Type: JWT
+Decoder Type: PLAIN
+Raw result: eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.NFvYpuwbF6YWbPyaNAGEPw9wbhiQSovvSrD89B8K7Ng
+Alg: none
+Iss: 
+Iat: 2018-01-18 01:30:22 +0000 UTC
+Exp: 
+File: src/main/resources/lessons/jwt/documentation/JWT_libraries.adoc
+Line: 40
+
+2026-06-28T23:00:16Z	info-0	trufflehog	finished scanning	{"chunks": 12362, "bytes": 151668112, "verified_secrets": 0, "unverified_secrets": 2, "scan_duration": "41.056154674s", "trufflehog_version": "3.95.6", "verification_caching": {"Hits":0,"Misses":2,"HitsWasted":0,"AttemptsSaved":0,"VerificationTimeSpentMS":17}}
