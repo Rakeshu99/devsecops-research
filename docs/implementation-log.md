@@ -25,13 +25,14 @@
 **Action:** Created a new VirtualBox VM named `devsecops-research-vm`.
 
 **Specification:**
-| Setting | Value |
-|---|---|
-| OS | Ubuntu 24.04.3 LTS (Server edition ISO, unattended install) |
-| Base Memory | 6144 MB |
-| Processors | 4 |
-| Disk | 50 GB, dynamically allocated, VDI format |
-| Network | NAT with port forwarding (SSH: 2222→22, WebGoat: 8080→8080, WebWolf: 9090→9090) |
+
+| Setting     | Value                                                                              |
+| ----------- | ---------------------------------------------------------------------------------- |
+| OS          | Ubuntu 24.04.3 LTS (Server edition ISO, unattended install)                        |
+| Base Memory | 6144 MB                                                                            |
+| Processors  | 4                                                                                  |
+| Disk        | 50 GB, dynamically allocated, VDI format                                           |
+| Network     | NAT with port forwarding (SSH: 2222→22, WebGoat: 8080→8080, WebWolf: 9090→9090) |
 
 **Justification:** Ubuntu was selected because Falco (the AI/ML runtime anomaly detection tool in the open-source stack) requires direct Linux kernel access and cannot run on Windows. Using a Linux VM also ensures the local testing environment matches the GitHub Actions Ubuntu runner used in the CI/CD pipeline, improving consistency between local and pipeline-based testing. Resource allocation (6GB RAM, 4 vCPU, 50GB disk) was sized to comfortably run Docker, WebGoat (a Java/Spring Boot application), and five security tools without resource contention, while remaining within the host laptop's 16GB RAM ceiling.
 
@@ -48,6 +49,7 @@
 **Justification:** SSH access improves workflow efficiency (proper terminal scrollback, copy-paste reliability) and mirrors how a real engineer would interact with a remote Linux server or CI/CD runner — relevant to the SME-realistic operating model the project is evaluating.
 
 **Command used:**
+
 ```bash
 sudo apt install openssh-server -y
 ```
@@ -59,6 +61,7 @@ sudo apt install openssh-server -y
 ### Step 4 — System Update
 
 **Command used:**
+
 ```bash
 sudo apt update && sudo apt upgrade -y
 ```
@@ -74,6 +77,7 @@ sudo apt update && sudo apt upgrade -y
 **Action:** Installed Docker Engine from Docker's official APT repository (not Ubuntu's default repository, which carries an outdated version).
 
 **Commands used:**
+
 ```bash
 sudo apt install ca-certificates curl gnupg -y
 sudo install -m 0755 -d /etc/apt/keyrings
@@ -89,9 +93,11 @@ newgrp docker
 **Result:** Docker Engine, CLI, containerd, Buildx plugin, and Compose plugin installed successfully. User added to `docker` group to allow running Docker commands without `sudo`.
 
 **Verification:**
+
 ```bash
 docker run hello-world
 ```
+
 Output confirmed: `Hello from Docker! This message shows that your installation appears to be working correctly.`
 
 **Screenshot:** `04-docker-install-complete.png`, `05-docker-hello-world.png`
@@ -101,11 +107,13 @@ Output confirmed: `Hello from Docker! This message shows that your installation 
 ### Step 6 — WebGoat Deployment
 
 **Command used:**
+
 ```bash
 docker run -d -p 8080:8080 -p 9090:9090 --name webgoat webgoat/webgoat
 ```
 
 **Result:** WebGoat image pulled successfully and container started. Application logs confirmed both Tomcat services started correctly:
+
 - Port 9090 (WebWolf) — started in ~53 seconds
 - Port 8080 (WebGoat) — started in ~87 seconds total
 
@@ -129,16 +137,17 @@ docker run -d -p 8080:8080 -p 9090:9090 --name webgoat webgoat/webgoat
 
 ## Summary — Environment Status as of 22 June 2026
 
-| Component | Status |
-|---|---|
-| Ubuntu 24.04 VM (6GB RAM, 4 vCPU, 50GB disk) | Provisioned and operational |
-| SSH remote access | Working |
-| Docker Engine | Installed and verified |
-| OWASP WebGoat | Deployed, accessible, user account created |
+| Component                                    | Status                                     |
+| -------------------------------------------- | ------------------------------------------ |
+| Ubuntu 24.04 VM (6GB RAM, 4 vCPU, 50GB disk) | Provisioned and operational                |
+| SSH remote access                            | Working                                    |
+| Docker Engine                                | Installed and verified                     |
+| OWASP WebGoat                                | Deployed, accessible, user account created |
 
 **Relevance to research:** This establishes the controlled test environment required for Phase 2 of the Design Science Research methodology (open-source stack construction and testing). The environment is now ready for the first security tool — Semgrep — to be integrated and run against WebGoat's source code as the first detection capability measurement (Metric 1).
 
 **Next steps:**
+
 1. Create GitHub repository structure
 2. Build baseline GitHub Actions pipeline (no security tools — control condition)
 3. Integrate Semgrep and capture first detection results
@@ -150,6 +159,7 @@ docker run -d -p 8080:8080 -p 9090:9090 --name webgoat webgoat/webgoat
 **Objective:** Install Semgrep and run a static code analysis scan against WebGoat's source code to capture the first detection capability data point for the open-source stack.
 
 **Steps performed:**
+
 1. Cloned WebGoat source repository (`github.com/WebGoat/WebGoat`) into the VM — 48,813 objects, full Java/Spring Boot codebase.
 2. Installed Semgrep via `pip3 install semgrep --break-system-packages`. Required adding `~/.local/bin` to `PATH` (`source ~/.bashrc`) since `pip3` installed scripts there by default.
 3. Ran `semgrep --config=p/owasp-top-ten` against the WebGoat source tree.
@@ -169,6 +179,7 @@ docker run -d -p 8080:8080 -p 9090:9090 --name webgoat webgoat/webgoat
 **Objective:** Install Trivy and scan the WebGoat Docker image for known CVEs in OS packages and Java dependencies, providing a second, complementary data point to Semgrep's code-level findings.
 
 **Steps performed:**
+
 1. Attempted install via the official Trivy install script — failed with a DNS resolution error (`Could not resolve host: get.trivy.dev`).
 2. Switched to Trivy's official APT repository as a fallback. Successfully installed Trivy v0.71.2.
 3. Ran `trivy image webgoat/webgoat --severity CRITICAL,HIGH` against the running WebGoat image.
@@ -177,6 +188,7 @@ docker run -d -p 8080:8080 -p 9090:9090 --name webgoat webgoat/webgoat
 **Result:** 62 vulnerabilities total — 11 (all HIGH) in the Ubuntu 24.04 OS layer, and 51 (39 HIGH, 12 CRITICAL) in `webgoat.jar`'s Java dependencies. Most significant CRITICAL findings: CVE-2013-7285 (XStream 1.4.5, remote code execution via insecure deserialization), CVE-2026-41293 (Tomcat, HTTP/2 header validation bypass), CVE-2025-41232 (Spring Security Core, authorization bypass), CVE-2026-22732 (Spring Security Web, policy bypass), CVE-2026-40477 (Thymeleaf, server-side template injection).
 
 **Issues encountered:**
+
 - Official install script unreliable (DNS resolution failure) — required fallback to APT method.
 - Default timeout insufficient for this image's size and complexity — required manual override.
 - First-run database downloads (97 MiB vulnerability DB + 884 MiB Java DB) added approximately 9 minutes of one-time setup overhead before any scanning began. Both databases are cached locally afterward (Java DB cached for 3 days).
@@ -187,7 +199,39 @@ docker run -d -p 8080:8080 -p 9090:9090 --name webgoat webgoat/webgoat
 **Relevance to research:** Demonstrates that Semgrep (code-level analysis) and Trivy (dependency/image-level analysis) are complementary rather than overlapping — zero overlap in vulnerability classes found between the two tools. This is an important methodological point for the final comparative analysis: raw finding counts should not be compared directly across tools without accounting for what layer of the software supply chain each tool actually inspects. The install script failure and timeout issues are concrete, citable evidence for Metric 3 (Setup Complexity).
 
 **Next steps:**
+
 1. Trufflehog integration (secret detection)
 2. Falco integration (runtime anomaly detection)
 3. OPA integration (policy enforcement)
 4. Build baseline and open-source GitHub Actions pipelines
+
+
+## 28 June 2026 — Trufflehog Integration (Tool 3 of 5)
+
+**Objective:** Install Trufflehog and scan WebGoat's source code for hardcoded secrets and credentials, then supplement with a controlled test to generate a genuine detection-capability data point.
+
+**Steps performed:**
+
+1. Installed Trufflehog v3.95.6 via the official install script. Initial attempt failed with a permissions error (`cannot create regular file '/usr/local/bin/trufflehog': Permission denied`) — resolved by re-running with `sudo`.
+2. First scan attempt failed with an updater error (`cannot move binary`) caused by Trufflehog's auto-update check attempting to write to a root-owned binary path. Resolved using the `--no-update` flag.
+3. Ran `trufflehog filesystem . --no-update` against the WebGoat source tree.
+4. An initial run produced misleading duplicate results because the scan's own output file was written into the directory being scanned and then re-scanned in the same pass. Resolved by directing output to `/tmp/` instead of inside the target directory.
+5. Created a controlled test (`test-secrets-controlled/fake-credentials.env`) containing four deliberately injected fake secrets — an Azure Client Secret, an Azure Storage Connection String, a generic database password, and a GitHub personal access token — to directly measure detection capability, since WebGoat itself does not contain realistic hardcoded operational secrets.
+6. Ran Trufflehog against the controlled test file.
+7. Removed the controlled test file from the VM after scanning (`rm -rf test-secrets-controlled`).
+
+**Result — WebGoat scan:** 2 findings (both unverified), both JWT tokens embedded in WebGoat's own JWT lesson documentation (`JWT.html`, `JWT_libraries.adoc`) — intentional teaching content, not leaked operational credentials. Scan covered 151.6 MB across 12,362 chunks in 41 seconds.
+
+**Result — controlled test:** 1 of 4 (25%) injected fake secrets detected. The GitHub token was correctly identified (with a credential-rotation guide link returned). Neither the Azure Client Secret nor the Azure Storage Connection String were detected. The generic database password was not detected, as expected for unstructured secrets.
+
+**Issues encountered:** Permissions error on install (resolved with `sudo`); auto-updater runtime error (resolved with `--no-update`); self-scan duplication on first WebGoat run (resolved by redirecting output outside the scan target).
+
+**Full results and analysis:** `metrics/results/trufflehog-results.md`, raw output `metrics/results/trufflehog-findings-readable.txt` and `metrics/results/trufflehog-controlled-test.txt`
+
+**Relevance to research:** The WebGoat scan result demonstrates that WebGoat is not, on its own, a sufficient test case for evaluating secret-detection tools, since its deliberate vulnerabilities are concentrated in code logic and dependency issues rather than hardcoded credentials — this is itself a useful methodological observation for the limitations section. The controlled test provides a genuine detection-capability data point (Metric 1): strong detection of well-known platform token formats (GitHub), no detection of the two Azure-specific credential formats tested, and no detection of unstructured secrets (an inherent limitation of pattern-based detection generally). The Azure detection gap is particularly significant given this project's cloud-native comparison stack is Azure-based, and is directly relevant to Metric 6 (SME Suitability) — an SME standardising on Azure may need to supplement Trufflehog with Azure-native secret scanning.
+
+**Next steps:**
+
+1. Falco integration (runtime anomaly detection)
+2. OPA integration (policy enforcement)
+3. Build baseline and open-source GitHub Actions pipelines

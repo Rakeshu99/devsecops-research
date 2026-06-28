@@ -65,7 +65,7 @@ DSR was selected because this project builds and evaluates a technical artefact,
 ## Project Map
 
 - `docs/` — implementation log, architecture notes, academic justifications
-- `stacks/opensource/` — configuration files for Semgrep, Trivy, Trufflehog, Falco, OPA
+- `stacks/opensource/` — configuration files and reusable scripts for Semgrep, Trivy, Trufflehog, Falco, OPA
 - `stacks/azure/` — configuration files for the Azure-native stack
 - `.github/workflows/` — GitHub Actions pipeline definitions (baseline, open-source, Azure)
 - `metrics/collection/` — scripts used to collect and structure results
@@ -78,6 +78,7 @@ DSR was selected because this project builds and evaluates a technical artefact,
 |---|---|---|
 | Semgrep | 20 (code-level: SQL injection, path traversal, insecure crypto, CI/CD shell injection) | `metrics/results/semgrep-results.md` |
 | Trivy | 62 (dependency/OS-level: outdated XStream, Tomcat, Spring Security, Thymeleaf) | `metrics/results/trivy-results.md` |
+| Trufflehog | 2 in WebGoat (non-operational JWTs); 1 of 4 (25%) detected in controlled test — gap identified on Azure-specific secret formats | `metrics/results/trufflehog-results.md` |
 
 ---
 
@@ -100,7 +101,7 @@ DSR was selected because this project builds and evaluates a technical artefact,
 | Environment setup (Ubuntu VM, Docker, WebGoat deployment) | ✅ Complete |
 | Open-source stack — Semgrep (static code analysis) | ✅ Complete — 20 findings against WebGoat source code |
 | Open-source stack — Trivy (container/dependency scanning) | ✅ Complete — 62 findings against WebGoat Docker image |
-| Open-source stack — Trufflehog (secret detection) | ⬜ Not started |
+| Open-source stack — Trufflehog (secret detection) | ✅ Complete — 2 findings in WebGoat (non-operational); 1 of 4 (25%) detected in controlled test |
 | Open-source stack — Falco (runtime anomaly detection) | ⬜ Not started |
 | Open-source stack — OPA (policy enforcement) | ⬜ Not started |
 | Baseline GitHub Actions pipeline (no security tools) | ⬜ Not started |
@@ -109,4 +110,4 @@ DSR was selected because this project builds and evaluates a technical artefact,
 
 See `docs/implementation-log.md` for full setup details and `metrics/results/` for tool-by-tool findings and analysis.
 
-**Next step:** Integration of Trufflehog for secret detection against WebGoat's source code.
+**Next step:** Integration of Falco for runtime anomaly detection.
