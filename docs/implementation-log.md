@@ -206,7 +206,7 @@ docker run -d -p 8080:8080 -p 9090:9090 --name webgoat webgoat/webgoat
 4. Build baseline and open-source GitHub Actions pipelines
 
 
-## 28 June 2026 — Trufflehog Integration (Tool 3 of 5)
+## 26th June 2026 — Trufflehog Integration (Tool 3 of 5)
 
 **Objective:** Install Trufflehog and scan WebGoat's source code for hardcoded secrets and credentials, then supplement with a controlled test to generate a genuine detection-capability data point.
 
@@ -235,3 +235,40 @@ docker run -d -p 8080:8080 -p 9090:9090 --name webgoat webgoat/webgoat
 1. Falco integration (runtime anomaly detection)
 2. OPA integration (policy enforcement)
 3. Build baseline and open-source GitHub Actions pipelines
+
+
+
+## 27th June 2026 (continued) — Falco Integration (Tool 4 of 5)
+
+**Objective:** Install Falco and verify runtime anomaly detection capability against the running WebGoat container — the only tool in the open-source stack operating at runtime rather than at the pre-pipeline/build stage.
+
+**Steps performed:**
+
+1. Installed Falco v0.44.1 via the official APT repository (chosen directly over the install script, having learned from Trivy's earlier DNS-related install script failure).
+2. Falco's installer automatically selected the modern eBPF driver (`falco-modern-bpf.service`) rather than a kernel module — more portable for a VM environment, no kernel module build/load step required.
+3. Confirmed service active via `systemctl status falco` — rules loaded with valid schema, monitoring syscalls across all CPUs.
+4. Attempted to watch live alerts via `journalctl -u falco` and `journalctl -fu falco` — both returned no entries despite the service being confirmed active and consuming CPU.
+5. Investigated `/etc/falco/falco.yaml` and found `syslog_output: enabled: true` — Falco's output goes to `/var/log/syslog`, not tagged under the `falco` systemd unit in a way `journalctl -u falco` could filter.
+6. Switched to `sudo tail -50 /var/log/syslog | grep -i falco` — found Falco had been logging correctly the entire time.
+7. Triggered a test anomaly: spawned an interactive shell inside the running WebGoat container (`docker exec -it webgoat /bin/bash`), attempted to read `/etc/shadow` (denied — confirms WebGoat runs as non-root `webgoat` user), then exited.
+
+**Result:** Falco successfully detected both shell-spawn attempts, logging full forensic context for each:
+
+```
+Notice A shell was spawned in a container with an attached terminal |
+evt_type=execve user=webgoat user_uid=1001 process=bash
+container_id=4ecae51bbf66 container_name=webgoat
+container_image_repository=webgoat/webgoat container_image_tag=latest
+```
+
+**Issues encountered:** The logging-destination mismatch (syslog vs. journald unit) cost significant troubleshooting time and is a genuine, citable setup complexity finding — Falco was working correctly throughout, but its default alert location is not obvious from `systemctl status` alone.
+
+**Full results and analysis:** `metrics/results/falco-results.md`, raw output `metrics/results/falco-detection-results.txt`
+
+**Relevance to research:** Falco is methodologically distinct from the previous three tools in this stack — it detects anomalous behaviour in a *running* system rather than scanning static code, dependencies, or committed secrets. This demonstrates defence-in-depth across the software lifecycle but also means its "pipeline overhead" (Metric 4) isn't directly comparable to discrete scan durations; it is better characterised as continuous resource consumption (observed: ~46MB memory, ~48s CPU time over 13 minutes of monitoring — low overhead). Detection of the shell-spawn event required no custom rule configuration, demonstrating strong out-of-the-box capability for well-known anomaly patterns (Metric 1). The logging-destination friction point is directly relevant to Metric 3 (Setup Complexity) and Metric 6 (SME Suitability) — an SME team would need this knowledge before trusting the tool operationally.
+
+**Next steps:**
+
+1. OPA integration (policy enforcement) — final tool in the open-source stack
+2. Build baseline and open-source GitHub Actions pipelines
+3. Begin Azure cloud-native stack setup
