@@ -1,4 +1,4 @@
-# Implementation Log — DevSecOps Pre-Pipeline Security Gate Research
+﻿# Implementation Log — DevSecOps Pre-Pipeline Security Gate Research
 
 **Student:** Rakesh Uday Kumar (A00047386)
 **Supervisor:** Dr. Shivani Jaswal
