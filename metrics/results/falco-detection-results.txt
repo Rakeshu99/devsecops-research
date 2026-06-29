@@ -1,0 +1,39 @@
+2026-06-28T23:38:24.710885+00:00 devsecops-research-vm systemd[1]: Started falcoctl-artifact-follow.service - Falcoctl Artifact Follow: automatic artifacts update service.
+2026-06-28T23:38:25.261521+00:00 devsecops-research-vm falco: Falco version: 0.44.1 (x86_64)
+2026-06-28T23:38:25.264531+00:00 devsecops-research-vm falco: Falco initialized with configuration files:
+2026-06-28T23:38:25.265548+00:00 devsecops-research-vm falco:    /etc/falco/config.d/engine-kind-falcoctl.yaml | schema validation: ok
+2026-06-28T23:38:25.266363+00:00 devsecops-research-vm falco:    /etc/falco/config.d/falco.container_plugin.yaml | schema validation: ok
+2026-06-28T23:38:25.267442+00:00 devsecops-research-vm falco:    /etc/falco/falco.yaml | schema validation: ok
+2026-06-28T23:38:25.268015+00:00 devsecops-research-vm falco: System info: Linux version 6.8.0-124-generic (buildd@lcy02-amd64-019) (x86_64-linux-gnu-gcc-13 (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, GNU ld (GNU Binutils for Ubuntu) 2.42) #124-Ubuntu SMP PREEMPT_DYNAMIC Tue May 26 13:00:45 UTC 2026
+2026-06-28T23:38:25.341612+00:00 devsecops-research-vm falco: Loaded plugin 'container@0.7.1' from file /usr/share/falco/plugins/libcontainer.so
+2026-06-28T23:38:25.370406+00:00 devsecops-research-vm falco: [libs]: container: Enabled 'podman' container engine.
+2026-06-28T23:38:25.373066+00:00 devsecops-research-vm falco: [libs]: container: * enabled container runtime socket at '/run/podman/podman.sock'
+2026-06-28T23:38:25.374499+00:00 devsecops-research-vm falco: [libs]: container: Enabled 'docker' container engine.
+2026-06-28T23:38:25.375008+00:00 devsecops-research-vm falco: [libs]: container: * enabled container runtime socket at '/var/run/docker.sock'
+2026-06-28T23:38:25.375337+00:00 devsecops-research-vm falco: [libs]: container: Enabled 'cri' container engine.
+2026-06-28T23:38:25.376670+00:00 devsecops-research-vm falco: [libs]: container: * enabled container runtime socket at '/run/containerd/containerd.sock'
+2026-06-28T23:38:25.376845+00:00 devsecops-research-vm falco: [libs]: container: * enabled container runtime socket at '/run/crio/crio.sock'
+2026-06-28T23:38:25.379311+00:00 devsecops-research-vm falco: [libs]: container: * enabled container runtime socket at '/run/k3s/containerd/containerd.sock'
+2026-06-28T23:38:25.382535+00:00 devsecops-research-vm falco: [libs]: container: * enabled container runtime socket at '/run/host-containerd/containerd.sock'
+2026-06-28T23:38:25.384324+00:00 devsecops-research-vm falco: [libs]: container: Enabled 'containerd' container engine.
+2026-06-28T23:38:25.386320+00:00 devsecops-research-vm falco: [libs]: container: * enabled container runtime socket at '/run/host-containerd/containerd.sock'
+2026-06-28T23:38:25.386421+00:00 devsecops-research-vm falco: [libs]: container: Enabled 'lxc' container engine.
+2026-06-28T23:38:25.393119+00:00 devsecops-research-vm falco: [libs]: container: Enabled 'libvirt_lxc' container engine.
+2026-06-28T23:38:25.395203+00:00 devsecops-research-vm falco: [libs]: container: Enabled 'bpm' container engine.
+2026-06-28T23:38:25.397256+00:00 devsecops-research-vm falco: Loading rules from:
+2026-06-28T23:38:26.162363+00:00 devsecops-research-vm falco:    /etc/falco/falco_rules.yaml | schema validation: ok
+2026-06-28T23:38:26.429214+00:00 devsecops-research-vm falco:    /etc/falco/falco_rules.local.yaml | schema validation: none
+2026-06-28T23:38:26.434394+00:00 devsecops-research-vm falco: The chosen syscall buffer dimension is: 8388608 bytes (8 MBs)
+2026-06-28T23:38:26.435244+00:00 devsecops-research-vm falco: Starting health webserver with threadiness 4, listening on 0.0.0.0:8765
+2026-06-28T23:38:26.468547+00:00 devsecops-research-vm falco: Loaded event sources: syscall
+2026-06-28T23:38:26.469105+00:00 devsecops-research-vm falco: Enabled event sources: syscall
+2026-06-28T23:38:26.469758+00:00 devsecops-research-vm falco: Opening 'syscall' source with modern BPF probe.
+2026-06-28T23:38:26.470495+00:00 devsecops-research-vm falco: One ring buffer every '2' CPUs.
+2026-06-28T23:38:26.470995+00:00 devsecops-research-vm falco: [libs]: Trying to open the right engine!
+2026-06-28T23:38:28.338073+00:00 devsecops-research-vm falcoctl[184139]: 2026-06-28 23:38:28 INFO  Creating follower
+2026-06-28T23:38:28.345429+00:00 devsecops-research-vm falcoctl[184139]:                       ├ artifact: falco-rules:5
+2026-06-28T23:38:28.347786+00:00 devsecops-research-vm falcoctl[184139]:                       └ check every: 168h0m0s
+2026-06-28T23:38:28.348421+00:00 devsecops-research-vm falcoctl[184139]: 2026-06-28 23:38:28 INFO  Starting follower
+2026-06-28T23:38:28.350580+00:00 devsecops-research-vm falcoctl[184139]:                       └ artifact: ghcr.io/falcosecurity/rules/falco-rules:5
+2026-06-28T23:47:48.306655+00:00 devsecops-research-vm falco: 23:47:48.130705464: Notice A shell was spawned in a container with an attached terminal | evt_type=execve user=webgoat user_uid=1001 user_loginuid=-1 process=bash proc_exepath=/usr/bin/bash parent=containerd-shim command=bash terminal=34816 exe_flags=EXE_LOWER_LAYER container_id=4ecae51bbf66 container_name=webgoat container_image_repository=webgoat/webgoat container_image_tag=latest k8s_pod_name=<NA> k8s_ns_name=<NA>
+2026-06-28T23:50:19.402784+00:00 devsecops-research-vm falco: 23:50:19.312425028: Notice A shell was spawned in a container with an attached terminal | evt_type=execve user=webgoat user_uid=1001 user_loginuid=-1 process=bash proc_exepath=/usr/bin/bash parent=runc command=bash terminal=34816 exe_flags=EXE_LOWER_LAYER container_id=4ecae51bbf66 container_name=webgoat container_image_repository=webgoat/webgoat container_image_tag=latest k8s_pod_name=<NA> k8s_ns_name=<NA>
