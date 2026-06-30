@@ -273,9 +273,9 @@ container_image_repository=webgoat/webgoat container_image_tag=latest
 2. Build baseline and open-source GitHub Actions pipelines
 3. Begin Azure cloud-native stack setup
 
----------------------------
+---
 
-## 29 June 2026 — OPA Integration (Tool 5 of 5 — Open-Source Stack Complete)
+## 28 June 2026 — OPA Integration (Tool 5 of 5 — Open-Source Stack Complete)
 
 **Objective:** Install OPA, author a custom Rego policy targeting CI/CD security risk, and validate it against both a true-positive and true-negative test case — completing the final tool in the open-source stack.
 
@@ -308,3 +308,48 @@ All five open-source tools (Semgrep, Trivy, Trufflehog, Falco, OPA) are now inst
 1. Build a baseline GitHub Actions pipeline (no security tooling) as the control condition
 2. Build the open-source stack pipeline, integrating all five tools into actual CI/CD execution — moving evidence from local VM testing into the pipeline context this research question specifically addresses
 3. Begin Azure cloud-native stack setup (Phase 3)
+
+
+## 29 June 2026 — GitHub Actions Pipeline Build
+
+**Objective:** Build the baseline and open-source stack GitHub Actions pipelines, moving from local VM testing to actual CI/CD pipeline execution — the context this project's research question specifically addresses.
+
+### Baseline Pipeline (`baseline.yml`)
+
+**Purpose:** Control condition. Measures pipeline execution time with zero security tooling, establishing the overhead baseline against which the security stack's added time is measured (Metric 4 — Pipeline Overhead).
+
+**Result:** Pipeline ran successfully in **11 seconds** on GitHub's Ubuntu runner. All steps completed: checkout, simulated build, timestamping.
+
+**Significance:** This 11-second baseline is the critical reference point for Metric 4. Any time added by the open-source or Azure security pipelines represents the actual overhead cost of the security gate.
+
+**Screenshot evidence:** `metrics/results/screenshots/07-pipeline-integration/01-baseline-pipeline-run.png`
+
+---
+
+### Open-Source Stack Pipeline (`opensource-stack.yml`)
+
+**Purpose:** The actual research artefact — the pre-pipeline security gate that this project's research question describes. Integrates all four applicable open-source tools (Semgrep, Trivy, Trufflehog, OPA) as parallel jobs in a GitHub Actions CI/CD pipeline.
+
+**Note on Falco:** Falco is not included in the GitHub Actions pipeline because it requires kernel-level access (eBPF probes) which is not available on GitHub's hosted Ubuntu runners. Falco's runtime monitoring is documented separately as a local VM finding. This is itself a relevant SME suitability observation — Falco cannot be directly integrated into a standard hosted CI/CD pipeline without self-hosted runners.
+
+**Tools integrated:**
+
+- Semgrep — OWASP Top Ten ruleset, JSON output
+- Trivy — filesystem scan, CRITICAL and HIGH severity, JSON output
+- Trufflehog — filesystem secret scan, JSON output
+- OPA — custom Rego policy evaluation against workflow YAML
+
+**Design decision:** All four jobs run in parallel (not sequential) to minimise total pipeline time. Each job uploads its results as a GitHub Actions artifact for download and analysis.
+
+**Relevance to research:**
+
+- Metric 4 (Pipeline Overhead): total pipeline time for the open-source stack vs. 11-second baseline
+- Metric 3 (Setup Complexity): number of configuration steps required to integrate all tools into a pipeline
+- Metric 1 (Detection Capability): whether tools detect the same vulnerabilities in pipeline context as in local VM testing
+
+**Next steps:**
+
+1. Confirm open-source stack pipeline ran successfully and capture timing data
+2. Set up Azure cloud-native stack (Phase 3)
+3. Build Azure stack pipeline for equivalent comparison
+

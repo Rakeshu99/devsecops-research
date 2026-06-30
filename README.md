@@ -109,10 +109,11 @@ DSR was selected because this project builds and evaluates a technical artefact,
 | Open-source stack — Falco (runtime anomaly detection) | ✅ Complete — successfully detected shell spawned in container, with full forensic context |
 | Open-source stack — OPA (policy enforcement) | ✅ Complete — cross-validated Semgrep's finding; zero false positives on control test |
 | **Open-source stack overall** | **✅ ALL 5 TOOLS COMPLETE** |
-| Baseline GitHub Actions pipeline (no security tools) | ⬜ Not started |
+| Baseline GitHub Actions pipeline (no security tools) | ✅ Complete — confirmed running in 11 seconds (control condition baseline) |
+| Open-source stack GitHub Actions pipeline | ✅ Complete — all 4 tools (Semgrep, Trivy, Trufflehog, OPA) running in CI/CD |
 | Azure cloud-native stack | ⬜ Not started |
 | Comparative analysis | ⬜ Not started |
 
 See `docs/implementation-log.md` for full setup details and `metrics/results/` for tool-by-tool findings and analysis.
 
-**Next step:** Build the baseline GitHub Actions pipeline (control condition, no security tooling) and the open-source stack pipeline, to move evidence from local VM testing into actual CI/CD pipeline execution — the context this research question specifically addresses. Azure cloud-native stack to follow.
+**Next step:** Set up Azure cloud-native stack (Defender for DevOps, Defender for Cloud, GitHub Advanced Security, Microsoft Sentinel, Azure Policy).
