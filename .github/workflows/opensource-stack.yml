@@ -1,0 +1,106 @@
+name: Open-Source Security Stack Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  semgrep:
+    name: Semgrep — Static Code Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Semgrep
+        run: pip3 install semgrep
+
+      - name: Run Semgrep OWASP Top Ten scan
+        run: semgrep --config=p/owasp-top-ten --json --output=semgrep-results.json . || true
+
+      - name: Upload Semgrep results
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-results
+          path: semgrep-results.json
+
+  trivy:
+    name: Trivy — Container and Dependency Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Trivy
+        run: |
+          sudo apt-get install -y wget gnupg
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo gpg --dearmor -o /usr/share/keyrings/trivy.gpg
+          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update
+          sudo apt-get install -y trivy
+
+      - name: Run Trivy filesystem scan
+        run: trivy fs . --severity CRITICAL,HIGH --format json --output trivy-results.json || true
+
+      - name: Upload Trivy results
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-results
+          path: trivy-results.json
+
+  trufflehog:
+    name: Trufflehog — Secret Detection
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Trufflehog
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sudo sh -s -- -b /usr/local/bin
+
+      - name: Run Trufflehog secret scan
+        run: trufflehog filesystem . --no-update --json > trufflehog-results.json || true
+
+      - name: Upload Trufflehog results
+        uses: actions/upload-artifact@v4
+        with:
+          name: trufflehog-results
+          path: trufflehog-results.json
+
+  opa:
+    name: OPA — Policy Enforcement
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install OPA
+        run: |
+          curl -L -o opa https://openpolicyagent.org/downloads/v0.68.0/opa_linux_amd64_static
+          chmod +x opa
+          sudo mv opa /usr/local/bin/
+
+      - name: Install pyyaml for YAML conversion
+        run: pip3 install pyyaml
+
+      - name: Convert workflow YAML to JSON
+        run: |
+          python3 -c "import yaml, json; print(json.dumps(yaml.safe_load(open('.github/workflows/opensource-stack.yml'))))" > workflow.json
+
+      - name: Copy OPA policy from stacks folder
+        run: cp stacks/opensource/opa/github-actions-security.rego .
+
+      - name: Run OPA policy evaluation
+        run: |
+          opa eval --data github-actions-security.rego --input workflow.json "data.githubactions.deny" --format pretty > opa-results.json || true
+          cat opa-results.json
+
+      - name: Upload OPA results
+        uses: actions/upload-artifact@v4
+        with:
+          name: opa-results
+          path: opa-results.json
