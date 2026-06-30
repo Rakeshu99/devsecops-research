@@ -1,4 +1,4 @@
-﻿# Comparing Open-Source and Cloud-Native AI/ML Security Tools as a Pre-Pipeline Gate in DevSecOps CI/CD Pipelines: A Study of SME Suitability
+# Comparing Open-Source and Cloud-Native AI/ML Security Tools as a Pre-Pipeline Gate in DevSecOps CI/CD Pipelines: A Study of SME Suitability
 
 MSc Research Project — TU Dublin, Computing with DevOps
 **Student:** Rakesh Uday Kumar (A00047386)
@@ -21,7 +21,7 @@ The 2020 SolarWinds SUNBURST breach demonstrated that rule-based security tools 
 
 ## What Is Included
 
-- An open-source security stack (Semgrep, Trivy, Trufflehog, Falco, OPA) integrated as a pre-pipeline gate
+- An open-source security stack (Semgrep, Trivy, Trufflehog, Falco, OPA) integrated as a pre-pipeline gate — **all five tools complete**
 - An Azure cloud-native security stack (Defender for DevOps, Defender for Cloud, GitHub Advanced Security, Microsoft Sentinel, Azure Policy) integrated as an equivalent pre-pipeline gate
 - A deliberately vulnerable test application (OWASP WebGoat) with introduced OWASP Top 10 CI/CD Security Risks
 - GitHub Actions pipeline configurations for both stacks, plus a baseline (no security tooling) control pipeline
@@ -72,7 +72,7 @@ DSR was selected because this project builds and evaluates a technical artefact,
 - `metrics/results/` — raw tool output, screenshots, comparison tables
 - `vulnerabilities/` — documentation of deliberately introduced vulnerabilities and their purpose
 
-### Results So Far
+### Results So Far — Open-Source Stack Complete
 
 | Tool | Findings | Full Results |
 |---|---|---|
@@ -80,6 +80,9 @@ DSR was selected because this project builds and evaluates a technical artefact,
 | Trivy | 62 (dependency/OS-level: outdated XStream, Tomcat, Spring Security, Thymeleaf) | `metrics/results/trivy-results.md` |
 | Trufflehog | 2 in WebGoat (non-operational JWTs); 1 of 4 (25%) detected in controlled test — gap identified on Azure-specific secret formats | `metrics/results/trufflehog-results.md` |
 | Falco | Successfully detected shell spawned inside running container, with full process/container context | `metrics/results/falco-results.md` |
+| OPA | Correctly flagged the same CI/CD shell injection risk found independently by Semgrep (true positive); zero false positives on a clean control input (true negative) | `metrics/results/opa-results.md` |
+
+**Notable cross-validation finding:** Semgrep (static code analysis) and OPA (policy-as-code evaluation) independently identified the same shell injection vulnerability in WebGoat's `.github/workflows/release.yml`, using entirely different detection mechanisms. This corroboration strengthens confidence that the finding represents a genuine issue rather than a tool-specific false positive.
 
 ---
 
@@ -104,11 +107,12 @@ DSR was selected because this project builds and evaluates a technical artefact,
 | Open-source stack — Trivy (container/dependency scanning) | ✅ Complete — 62 findings against WebGoat Docker image |
 | Open-source stack — Trufflehog (secret detection) | ✅ Complete — 2 findings in WebGoat (non-operational); 1 of 4 (25%) detected in controlled test |
 | Open-source stack — Falco (runtime anomaly detection) | ✅ Complete — successfully detected shell spawned in container, with full forensic context |
-| Open-source stack — OPA (policy enforcement) | ⬜ Not started |
+| Open-source stack — OPA (policy enforcement) | ✅ Complete — cross-validated Semgrep's finding; zero false positives on control test |
+| **Open-source stack overall** | **✅ ALL 5 TOOLS COMPLETE** |
 | Baseline GitHub Actions pipeline (no security tools) | ⬜ Not started |
 | Azure cloud-native stack | ⬜ Not started |
 | Comparative analysis | ⬜ Not started |
 
 See `docs/implementation-log.md` for full setup details and `metrics/results/` for tool-by-tool findings and analysis.
 
-**Next step:** Integration of OPA for policy enforcement — final tool in the open-source stack.
+**Next step:** Build the baseline GitHub Actions pipeline (control condition, no security tooling) and the open-source stack pipeline, to move evidence from local VM testing into actual CI/CD pipeline execution — the context this research question specifically addresses. Azure cloud-native stack to follow.

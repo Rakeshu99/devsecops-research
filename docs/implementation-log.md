@@ -272,3 +272,39 @@ container_image_repository=webgoat/webgoat container_image_tag=latest
 1. OPA integration (policy enforcement) — final tool in the open-source stack
 2. Build baseline and open-source GitHub Actions pipelines
 3. Begin Azure cloud-native stack setup
+
+---------------------------
+
+## 29 June 2026 — OPA Integration (Tool 5 of 5 — Open-Source Stack Complete)
+
+**Objective:** Install OPA, author a custom Rego policy targeting CI/CD security risk, and validate it against both a true-positive and true-negative test case — completing the final tool in the open-source stack.
+
+**Steps performed:**
+
+1. Installed OPA v0.68.0 via direct binary download (avoiding package manager dependency issues encountered with Trivy and Falco earlier).
+2. Authored a custom Rego policy (`github-actions-security.rego`) targeting the same risk class Semgrep identified independently in Tool 1: untrusted `github` context data used directly in a `run:` shell step without sanitisation.
+3. Converted WebGoat's `.github/workflows/release.yml` from YAML to JSON using a one-line Python script with `pyyaml`, since OPA evaluates structured JSON input.
+4. Ran the policy against the converted WebGoat workflow (true-positive test).
+5. Authored a minimal "clean" workflow JSON with no risky pattern and ran the same policy against it (true-negative / false-positive control test).
+
+**Result — true positive:** OPA correctly flagged the `release` job's risky `run:` step, identifying the exact same line Semgrep had flagged independently using a completely different detection mechanism (AST-based static analysis vs. declarative policy evaluation).
+
+**Result — true negative:** Policy returned an empty result (`[]`) against the clean control workflow, confirming no false positives.
+
+**Issues encountered:** None of significance — installation and evaluation were straightforward once the YAML-to-JSON conversion step was identified. The primary "friction point" for OPA is conceptual rather than technical: unlike the other four tools, OPA has no out-of-the-box security ruleset and requires policy logic to be authored from scratch.
+
+**Full results and analysis:** `metrics/results/opa-results.md`, policy file `stacks/opensource/opa/github-actions-security.rego`, reusable script `stacks/opensource/opa/run-opa-evaluation.sh`
+
+**Relevance to research:** This result provides meaningful cross-validation — two independent tools using entirely different detection methods identified the same real vulnerability, strengthening confidence that the finding is genuine rather than a tool-specific artefact. This is a key point for the final comparative analysis regarding the value of layered/defence-in-depth tooling. The lack of an out-of-the-box ruleset is a significant and directly citable finding for Metric 3 (Setup Complexity) and Metric 6 (SME Suitability): OPA's practical value for an SME is entirely dependent on the policy-authoring effort invested, in contrast to Semgrep, Trivy, Falco, and Trufflehog, all of which provided functional detection immediately using community-maintained or default rules.
+
+---
+
+## Milestone ---- Open-Source Stack Complete
+
+All five open-source tools (Semgrep, Trivy, Trufflehog, Falco, OPA) are now installed, tested, and documented with real findings against WebGoat. This completes Phase 2 of the Design Science Research methodology (open-source stack construction and testing).
+
+**Next steps:**
+
+1. Build a baseline GitHub Actions pipeline (no security tooling) as the control condition
+2. Build the open-source stack pipeline, integrating all five tools into actual CI/CD execution — moving evidence from local VM testing into the pipeline context this research question specifically addresses
+3. Begin Azure cloud-native stack setup (Phase 3)

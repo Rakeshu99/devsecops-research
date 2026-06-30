@@ -1,0 +1,3 @@
+[
+  "Job 'release' has a 'run' step using untrusted github context data directly: echo \"WEBGOAT_TAG_VERSION=${{ github.ref_name }}\" \u003e\u003e $GITHUB_ENV\nWEBGOAT_MAVEN_VERSION=${{ github.ref_name }}\necho \"WEBGOAT_MAVEN_VERSION=${WEBGOAT_MAVEN_VERSION:1}\" \u003e\u003e $GITHUB_ENV\n"
+]
