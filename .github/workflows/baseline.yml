@@ -1,0 +1,30 @@
+name: Baseline Pipeline — No Security Tooling
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  baseline-build:
+    name: Baseline Build (Control Condition)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Record pipeline start time
+        run: echo "Pipeline started at $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+      - name: Simulate application build
+        run: |
+          echo "Simulating application build step"
+          echo "No security tooling applied in this baseline pipeline"
+          echo "This pipeline serves as the control condition for measuring pipeline overhead"
+          sleep 5
+
+      - name: Record pipeline end time
+        run: echo "Pipeline completed at $(date -u +%Y-%m-%dT%H:%M:%SZ)"
