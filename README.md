@@ -78,7 +78,7 @@ DSR was selected because this project builds and evaluates a technical artefact,
 |---|---|---|
 | Semgrep | 20 (code-level: SQL injection, path traversal, insecure crypto, CI/CD shell injection) | `metrics/results/semgrep-results.md` |
 | Trivy | 62 (dependency/OS-level: outdated XStream, Tomcat, Spring Security, Thymeleaf) | `metrics/results/trivy-results.md` |
-| Trufflehog | 2 in WebGoat (non-operational JWTs); 1 of 4 (25%) detected in controlled test — gap identified on Azure-specific secret formats | `metrics/results/trufflehog-results.md` |
+| Trufflehog | 2 in WebGoat (non-operational JWTs); 2 of 4 (50%) detected in Azure-relevant controlled test — Azure Storage connection string and DB password missed, GitHub token and Slack webhook detected | `metrics/results/trufflehog-results.md` |
 | Falco | Successfully detected shell spawned inside running container, with full process/container context | `metrics/results/falco-results.md` |
 | OPA | Correctly flagged the same CI/CD shell injection risk found independently by Semgrep (true positive); zero false positives on a clean control input (true negative) | `metrics/results/opa-results.md` |
 
@@ -103,17 +103,17 @@ DSR was selected because this project builds and evaluates a technical artefact,
 | Phase | Status |
 |---|---|
 | Environment setup (Ubuntu VM, Docker, WebGoat deployment) | ✅ Complete |
-| Open-source stack — Semgrep (static code analysis) | ✅ Complete — 20 findings against WebGoat source code |
-| Open-source stack — Trivy (container/dependency scanning) | ✅ Complete — 62 findings against WebGoat Docker image |
-| Open-source stack — Trufflehog (secret detection) | ✅ Complete — 2 findings in WebGoat (non-operational); 1 of 4 (25%) detected in controlled test |
+| Open-source stack — Semgrep (static code analysis) | ✅ Complete — 20 findings against WebGoat source code (verified manually) |
+| Open-source stack — Trivy (container/dependency scanning) | ✅ Complete — 62 findings against WebGoat Docker image (verified manually) |
+| Open-source stack — Trufflehog (secret detection) | ✅ Complete — 2 findings in WebGoat (non-operational); 2 of 4 (50%) detected in Azure-relevant controlled test |
 | Open-source stack — Falco (runtime anomaly detection) | ✅ Complete — successfully detected shell spawned in container, with full forensic context |
 | Open-source stack — OPA (policy enforcement) | ✅ Complete — cross-validated Semgrep's finding; zero false positives on control test |
-| **Open-source stack overall** | **✅ ALL 5 TOOLS COMPLETE** |
+| **Open-source stack overall (manual verification)** | **✅ ALL 5 TOOLS COMPLETE** |
 | Baseline GitHub Actions pipeline (no security tools) | ✅ Complete — confirmed running in 11 seconds (control condition baseline) |
-| Open-source stack GitHub Actions pipeline | ✅ Complete — all 4 tools (Semgrep, Trivy, Trufflehog, OPA) running in CI/CD |
+| Open-source stack GitHub Actions pipeline (CI automation) | 🔶 In progress — submodule checkout fixed; Semgrep and Trivy scan-target fixes applied, CI re-verification against WebGoat pending |
 | Azure cloud-native stack | ⬜ Not started |
 | Comparative analysis | ⬜ Not started |
 
 See `docs/implementation-log.md` for full setup details and `metrics/results/` for tool-by-tool findings and analysis.
 
-**Next step:** Set up Azure cloud-native stack (Defender for DevOps, Defender for Cloud, GitHub Advanced Security, Microsoft Sentinel, Azure Policy).
+**Next step:** Verify the fixed CI pipeline produces results matching manual verification, then set up Azure cloud-native stack (Defender for DevOps, Defender for Cloud, GitHub Advanced Security, Microsoft Sentinel, Azure Policy).
