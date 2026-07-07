@@ -21,7 +21,7 @@ The 2020 SolarWinds SUNBURST breach demonstrated that rule-based security tools 
 
 ## What Is Included
 
-- An open-source security stack (Semgrep, Trivy, Trufflehog, Falco, OPA) integrated as a pre-pipeline gate — **all five tools complete**
+- An open-source security stack (Semgrep, Trivy, Trufflehog, Falco, OPA) integrated as a pre-pipeline gate — **all five tools complete, verified both manually and through automated CI/CD**
 - An Azure cloud-native security stack (Defender for DevOps, Defender for Cloud, GitHub Advanced Security, Microsoft Sentinel, Azure Policy) integrated as an equivalent pre-pipeline gate
 - A deliberately vulnerable test application (OWASP WebGoat) with introduced OWASP Top 10 CI/CD Security Risks
 - GitHub Actions pipeline configurations for both stacks, plus a baseline (no security tooling) control pipeline
@@ -84,6 +84,8 @@ DSR was selected because this project builds and evaluates a technical artefact,
 
 **Notable cross-validation finding:** Semgrep (static code analysis) and OPA (policy-as-code evaluation) independently identified the same shell injection vulnerability in WebGoat's `.github/workflows/release.yml`, using entirely different detection mechanisms. This corroboration strengthens confidence that the finding represents a genuine issue rather than a tool-specific false positive.
 
+**CI/CD pipeline verification:** All findings above were first established through direct manual tool execution, then independently reproduced through the automated GitHub Actions pipeline (`opensource-stack.yml`). Two configuration issues were identified and resolved during this verification (missing submodule checkout, and scan-target mismatches for Semgrep and Trivy) — see `docs/implementation-log.md` for the full account.
+
 ---
 
 ## Project Timeline
@@ -103,17 +105,17 @@ DSR was selected because this project builds and evaluates a technical artefact,
 | Phase | Status |
 |---|---|
 | Environment setup (Ubuntu VM, Docker, WebGoat deployment) | ✅ Complete |
-| Open-source stack — Semgrep (static code analysis) | ✅ Complete — 20 findings against WebGoat source code (verified manually) |
-| Open-source stack — Trivy (container/dependency scanning) | ✅ Complete — 62 findings against WebGoat Docker image (verified manually) |
-| Open-source stack — Trufflehog (secret detection) | ✅ Complete — 2 findings in WebGoat (non-operational); 2 of 4 (50%) detected in Azure-relevant controlled test |
+| Open-source stack — Semgrep (static code analysis) | ✅ Complete — 20 findings against WebGoat source code, verified manually and in CI |
+| Open-source stack — Trivy (container/dependency scanning) | ✅ Complete — 62 findings against WebGoat Docker image, verified manually and in CI |
+| Open-source stack — Trufflehog (secret detection) | ✅ Complete — 2 findings in WebGoat (non-operational), verified manually and in CI; 2 of 4 (50%) detected in Azure-relevant controlled test |
 | Open-source stack — Falco (runtime anomaly detection) | ✅ Complete — successfully detected shell spawned in container, with full forensic context |
 | Open-source stack — OPA (policy enforcement) | ✅ Complete — cross-validated Semgrep's finding; zero false positives on control test |
-| **Open-source stack overall (manual verification)** | **✅ ALL 5 TOOLS COMPLETE** |
+| **Open-source stack overall** | **✅ ALL 5 TOOLS COMPLETE, VERIFIED MANUALLY AND IN CI** |
 | Baseline GitHub Actions pipeline (no security tools) | ✅ Complete — confirmed running in 11 seconds (control condition baseline) |
-| Open-source stack GitHub Actions pipeline (CI automation) | 🔶 In progress — submodule checkout fixed; Semgrep and Trivy scan-target fixes applied, CI re-verification against WebGoat pending |
+| Open-source stack GitHub Actions pipeline (CI automation) | ✅ Complete — all four applicable tools (Semgrep, Trivy, Trufflehog, OPA) verified scanning real WebGoat content in automated CI |
 | Azure cloud-native stack | ⬜ Not started |
 | Comparative analysis | ⬜ Not started |
 
 See `docs/implementation-log.md` for full setup details and `metrics/results/` for tool-by-tool findings and analysis.
 
-**Next step:** Verify the fixed CI pipeline produces results matching manual verification, then set up Azure cloud-native stack (Defender for DevOps, Defender for Cloud, GitHub Advanced Security, Microsoft Sentinel, Azure Policy).
+**Next step:** Set up Azure cloud-native stack (Dependabot, Defender for DevOps, Defender for Cloud, GitHub Advanced Security, Microsoft Sentinel, Azure Policy). Note: pipeline timing figures for the open-source stack (baseline ~12s, stack ~27s) were captured before the CI submodule fix and require re-measurement under corrected conditions before use in the comparative analysis.

@@ -193,19 +193,20 @@ docker run -d -p 8080:8080 -p 9090:9090 --name webgoat webgoat/webgoat
 2. First scan attempt failed with an updater error (`cannot move binary`) caused by Trufflehog's auto-update check attempting to write to a root-owned binary path. Resolved using the `--no-update` flag.
 3. Ran `trufflehog filesystem . --no-update` against the WebGoat source tree.
 4. An initial run produced misleading duplicate results because the scan's own output file was written into the directory being scanned and then re-scanned in the same pass. Resolved by directing output to `/tmp/` instead of inside the target directory.
-5. Created a controlled test (`test-secrets-controlled/fake-credentials.env`) containing four deliberately injected fake secrets — an Azure Client Secret, an Azure Storage Connection String, a generic database password, and a GitHub personal access token — to directly measure detection capability, since WebGoat itself does not contain realistic hardcoded operational secrets.
+5. Created a controlled test (`test-secrets-controlled/fake-credentials.env`) containing four deliberately injected fake secrets to directly measure detection capability, since WebGoat itself does not contain realistic hardcoded operational secrets.
 6. Ran Trufflehog against the controlled test file.
-7. Removed the controlled test file from the VM after scanning (`rm -rf test-secrets-controlled`).
 
 **Result — WebGoat scan:** 2 findings (both unverified), both JWT tokens embedded in WebGoat's own JWT lesson documentation (`JWT.html`, `JWT_libraries.adoc`) — intentional teaching content, not leaked operational credentials. Scan covered 151.6 MB across 12,362 chunks in 41 seconds.
 
-**Result — controlled test:** 1 of 4 (25%) injected fake secrets detected. The GitHub token was correctly identified (with a credential-rotation guide link returned). Neither the Azure Client Secret nor the Azure Storage Connection String were detected. The generic database password was not detected, as expected for unstructured secrets.
+**Result — controlled test (initial version):** 1 of 4 detected, using an AWS access key as one of the four planted secrets.
 
-**Issues encountered:** Permissions error on install (resolved with `sudo`); auto-updater runtime error (resolved with `--no-update`); self-scan duplication on first WebGoat run (resolved by redirecting output outside the scan target).
+**Correction (7 July 2026):** The controlled test was rebuilt using an Azure Storage connection string in place of the AWS key, since the project's cloud-native comparison stack is Azure-based and the original test did not actually measure the Azure-specific claim being reported. Rebuilt test file: GitHub token, Azure Storage connection string, database password, Slack webhook — committed to the repository (`test-secrets-controlled/fake-credentials.env`) for reproducibility, unlike the original which was not version-controlled. **Corrected result: 2 of 4 (50%) detected** — GitHub token and Slack webhook detected; Azure Storage connection string and database password missed. Raw output: `metrics/results/trufflehog-controlled-test-v2.json`.
 
-**Full results and analysis:** `metrics/results/trufflehog-results.md`, raw output `metrics/results/trufflehog-findings-readable.txt` and `metrics/results/trufflehog-controlled-test.txt`
+**Issues encountered:** Permissions error on install (resolved with `sudo`); auto-updater runtime error (resolved with `--no-update`); self-scan duplication on first WebGoat run (resolved by redirecting output outside the scan target); original controlled test used the wrong cloud provider's credential format and was not committed to version control, requiring correction (see 7 July entry below).
 
-**Relevance to research:** The WebGoat scan result demonstrates that WebGoat is not, on its own, a sufficient test case for evaluating secret-detection tools, since its deliberate vulnerabilities are concentrated in code logic and dependency issues rather than hardcoded credentials. The controlled test provides a genuine detection-capability data point (Metric 1): strong detection of well-known platform token formats (GitHub), no detection of the two Azure-specific credential formats tested, and no detection of unstructured secrets. The Azure detection gap is particularly significant given this project's cloud-native comparison stack is Azure-based, and is directly relevant to Metric 6 (SME Suitability).
+**Full results and analysis:** `metrics/results/trufflehog-results.md`, raw output `metrics/results/trufflehog-findings-readable.txt` and `metrics/results/trufflehog-controlled-test-v2.json`
+
+**Relevance to research:** The WebGoat scan result demonstrates that WebGoat is not, on its own, a sufficient test case for evaluating secret-detection tools, since its deliberate vulnerabilities are concentrated in code logic and dependency issues rather than hardcoded credentials. The corrected controlled test provides a genuine, reproducible detection-capability data point (Metric 1): strong detection of well-known platform token formats (GitHub, Slack) but no detection of the Azure Storage connection string format or unstructured passwords. The Azure detection gap is directly relevant given this project's cloud-native comparison stack is Azure-based, and is significant for Metric 6 (SME Suitability).
 
 ---
 
@@ -295,7 +296,7 @@ All five open-source tools (Semgrep, Trivy, Trufflehog, Falco, OPA) are now inst
 
 **Design decision:** All four jobs run in parallel (not sequential) to minimise total pipeline time. Each job uploads its results as a GitHub Actions artifact for download and analysis.
 
-**Pipeline timing results confirmed:**
+**Pipeline timing results (initial, superseded — see 7 July entry):**
 
 | Pipeline | Runs | Average Time |
 |---|---|---|
@@ -303,29 +304,72 @@ All five open-source tools (Semgrep, Trivy, Trufflehog, Falco, OPA) are now inst
 | Open-Source Security Stack | 2 runs | ~26 seconds |
 | **Net security gate overhead** | | **~14 seconds per pipeline run** |
 
-**Individual job timing (Open-Source Stack Run #2):**
+**Individual job timing (initial, superseded):**
 
 | Tool | Time | Notes |
 |---|---|---|
-| Semgrep | 20s | Downloads ruleset on each run — caching would reduce this |
-| Trivy | 22s | Downloads vulnerability DB on each run — caching would reduce this |
-| Trufflehog | 8s | Lightweight — fast install and execution |
-| OPA | 8s | Near-instantaneous evaluation once binary is downloaded |
-| **Total (parallel)** | **27s** | Jobs run in parallel; total = slowest job, not sum of all jobs |
+| Semgrep | 20s | Downloads ruleset on each run |
+| Trivy | 22s | Downloads vulnerability DB on each run |
+| Trufflehog | 8s | Lightweight |
+| OPA | 8s | Near-instantaneous |
+| **Total (parallel)** | **27s** | |
 
-**Key analytical observations:**
-- Parallel job execution keeps total overhead manageable — sequential execution would add 58 seconds (sum of all jobs), making parallel design a meaningful SME-relevant optimisation
-- Semgrep and Trivy dominate runtime due to remote database/ruleset downloads; production caching (GitHub Actions cache action) would significantly reduce both on subsequent runs
-- Trufflehog and OPA add negligible overhead — strong SME suitability from a pipeline performance perspective
-- Falco excluded from pipeline — requires kernel-level eBPF access unavailable on GitHub-hosted Ubuntu runners; this is a directly citable limitation for Metric 6 (SME Suitability) — runtime anomaly detection requires either self-hosted runners or a separate always-on monitoring agent
+**Important note added 7 July 2026:** these initial timing figures were later discovered to have been measured while the pipeline's checkout step was not correctly pulling in the WebGoat submodule (see entry below) — meaning the tools were running against a repository with no WebGoat content present. These figures are retained here for transparency but are superseded and must not be used in the comparative analysis. Corrected timing is pending re-measurement under fixed conditions.
 
 **Screenshot evidence:**
 - `metrics/results/screenshots/07-pipeline-integration/01-baseline-pipeline-run.png`
 - `metrics/results/screenshots/07-pipeline-integration/02-opensource-pipeline-runs.png`
 - `metrics/results/screenshots/07-pipeline-integration/03-opensource-pipeline-job-timings.png`
 
+---
+
+## 30 June – 6 July 2026 — Azure GHAS / CodeQL Integration
+
+**Objective:** Begin Phase 3 (Azure cloud-native stack) with the GitHub-native component of the Azure comparison — GitHub Advanced Security's CodeQL — since it required WebGoat to be present as an analysable target within the repository for the first time.
+
+**Steps performed:**
+1. Added WebGoat as a Git submodule at `app/webgoat` (commit `8211cf2`), pointing to the upstream `WebGoat/WebGoat` repository.
+2. Enabled GitHub Advanced Security and Dependabot alerts/dependency graph under repository Settings.
+3. Configured a CodeQL Advanced workflow (`codeql.yml`) with `submodules: recursive` on checkout (correctly configured from the start, unlike the open-source stack pipeline — see below), JDK 25, and a manual Maven build after troubleshooting build-mode and JDK version iterations.
+4. Ran the CodeQL scan against the WebGoat submodule.
+
+**Result:** 71 findings total — 3 Critical (XXE injection in `CommentsCache.java`, deserialization x2), 52 High (dominated by repeated path traversal instances across multiple files, not 52 distinct vulnerability types), 16 Medium (11 in WebGoat application code — insecure cookies, missing HttpOnly; 5 in the repository's own `.github/workflows/opensource-stack.yml` — missing workflow permissions, a genuine finding in the project's own CI configuration rather than WebGoat).
+
+**Screenshot evidence:** `metrics/results/screenshots/08-azure-ghas/01-codeql-setup-enabled.png` through `05-codeql-medium.png`
+
+**Relevance to research:** This is the first Azure-stack data point, directly comparable to Semgrep's code-level findings. CodeQL's broader default scan scope (flagging a real misconfiguration in the project's own CI workflow, which none of the open-source tools were configured to catch) is itself a relevant SME-suitability observation, discussed further in the comparative analysis. As with Trivy vs. Semgrep, raw finding counts between CodeQL (71) and Semgrep (20) are not directly comparable without accounting for scan scope and rule depth differences between the two tools.
+
+---
+
+## 7 July 2026 — CI Pipeline Verification and Correction
+
+**Objective:** Verify that the open-source stack's automated GitHub Actions pipeline (`opensource-stack.yml`) actually scans WebGoat correctly, following completion of the CodeQL/GHAS phase, before proceeding to the remaining Azure stack components.
+
+**Issue found:** The pipeline's checkout steps (Semgrep, Trivy, Trufflehog, OPA jobs) lacked `submodules: recursive`. WebGoat was not added to the repository until 7 July, meaning every automated pipeline run prior to this date — including the ones that produced the "initial" timing figures above — executed against a repository with no WebGoat content present at all. This was discovered while cross-checking CI artifacts against the manually-verified tool results documented in the sections above.
+
+**Verification process:** Each tool's previously reported manual findings (Semgrep 20, Trivy 62, Trufflehog 2 WebGoat findings, OPA true-positive/negative) were re-confirmed against their original raw output logs and were found to be genuine and accurate — they had been generated by running each tool directly against a manually-cloned copy of WebGoat on the VM, independent of the (at-the-time non-functional) automated pipeline. The automated pipeline itself, however, had never successfully scanned WebGoat until the fixes below were applied.
+
+**Fixes applied:**
+1. Added `submodules: recursive` to all four checkout steps in `opensource-stack.yml`.
+2. **Semgrep:** even with the submodule correctly checked out to disk, Semgrep's default file-discovery only considers files tracked by the *current* repository's git index — a submodule's files are tracked by the submodule's own `.git`, so they were silently excluded. Fixed by adding `--no-git-ignore` to the scan command, forcing Semgrep to scan the actual filesystem rather than relying on git-tracked-file discovery.
+3. **Trivy:** the pipeline used `trivy fs .` (filesystem scan), which — once WebGoat's Java source was actually present — attempted live Maven dependency resolution against Maven Central and failed with a `429 Too Many Requests` error (GitHub-hosted runners share IP ranges, exhausting Maven's public rate limit). Fixed by switching to `trivy image webgoat/webgoat --timeout 15m`, matching the Docker-image-based method already used and documented in the original manual Trivy scan (see 22 June entry) — this reads the pre-built image's dependency manifest directly with no live external resolution required.
+4. **Trufflehog and OPA** required no command changes; the submodule checkout fix alone was sufficient for Trufflehog (it does not exclude submodule content the way Semgrep's default mode does), and OPA's job was never intended to scan WebGoat in the first place (it evaluates the repository's own workflow YAML, by design).
+
+**Re-verification result:** Following the fixes, a fresh pipeline run was triggered and all four artifacts were downloaded and inspected directly:
+- **Semgrep:** confirmed scanning real `app/webgoat/src/...` paths, producing the same categories of findings as the original manual scan (SQL injection, path traversal, MD5 usage, SSRF, the `release.yml` shell injection).
+- **Trivy:** confirmed real XStream, Tomcat, and Spring Security CVEs against `home/webgoat/webgoat.jar/BOOT-INF/lib/...` paths, matching the original manual scan.
+- **Trufflehog:** confirmed the same two JWT findings at the same file paths and line numbers (`JWT.html:323`, `JWT_libraries.adoc:40`) as the original manual scan.
+- **OPA:** confirmed empty result (`[]`) is correct and expected, since this job evaluates the pipeline's own workflow file, not WebGoat.
+
+**Additional correction:** The Trufflehog controlled secret test (originally run 28 June using an AWS access key as one of the four planted secrets) was identified as inconsistent with the project's Azure-based cloud-native comparison stack, and had not been committed to version control. Rebuilt using an Azure Storage connection string in its place, committed to the repository for reproducibility (`test-secrets-controlled/fake-credentials.env`, `metrics/results/trufflehog-controlled-test-v2.json`). Corrected result: 2 of 4 (50%) detected.
+
+**Issues encountered:** This verification pass took considerably longer than expected due to the compounding nature of the problem — the submodule bug alone would have been a single fix, but it surfaced two further, tool-specific scan-target issues (Semgrep's git-tracked-file limitation, Trivy's live dependency resolution) that only became visible once WebGoat was genuinely present for the pipeline to scan.
+
+**Relevance to research:** This is a legitimate Design Science Research iteration — build, evaluate, discover flaw, refine, re-evaluate — applied to the evaluation instrument itself (the CI pipeline) rather than to WebGoat. It also produces a directly citable Metric 3 (Setup Complexity) finding: correctly wiring open-source security tools into a real CI/CD pipeline against a codebase that includes git submodules required non-obvious, tool-specific configuration beyond the basic checkout step, a friction point an SME team would need to budget time for.
+
 **Next steps:**
-1. Set up Azure cloud-native stack (Phase 3)
-2. Build Azure stack GitHub Actions pipeline for equivalent comparison
-3. Collect Azure stack timing and detection data
-4. Conduct comparative analysis across all six metrics
+1. Re-measure pipeline timing under corrected conditions (previous 12s/27s figures are void).
+2. Update README status table to reflect verified CI pipeline completion.
+3. Proceed with remaining Azure stack components: Dependabot, Defender for DevOps, Defender for Cloud, Microsoft Sentinel, Azure Policy.
+4. Build Azure stack GitHub Actions pipeline for equivalent timing comparison.
+5. Conduct comparative analysis across all six metrics.
