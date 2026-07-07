@@ -2,8 +2,14 @@ name: Open-Source Security Stack Pipeline
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'app/**'
+      - '.github/workflows/opensource-stack.yml'
   pull_request:
     branches: [ main ]
+    paths:
+      - 'app/**'
+      - '.github/workflows/opensource-stack.yml'
   workflow_dispatch:
 jobs:
   semgrep:

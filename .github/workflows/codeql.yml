@@ -3,8 +3,14 @@ name: "CodeQL Advanced — Azure GHAS Stack"
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - 'app/**'
+      - '.github/workflows/**'
   pull_request:
     branches: [ "main" ]
+    paths:
+      - 'app/**'
+      - '.github/workflows/**'
   workflow_dispatch:
 
 jobs:

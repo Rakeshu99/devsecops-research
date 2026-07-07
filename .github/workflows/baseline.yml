@@ -3,8 +3,14 @@ name: Baseline Pipeline — No Security Tooling
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'app/**'
+      - '.github/workflows/baseline.yml'
   pull_request:
     branches: [ main ]
+    paths:
+      - 'app/**'
+      - '.github/workflows/baseline.yml'
   workflow_dispatch:
 
 jobs:
