@@ -69,3 +69,7 @@ trivy image webgoat/webgoat --severity CRITICAL,HIGH --timeout 15m
 | 4. Pipeline overhead | ~9 minutes one-time database download (cached after); actual scan execution itself was fast once databases were present |
 | 5. Cost | Free, fully open-source, no account required (unlike Semgrep Pro tier) |
 | 6. SME suitability | No license required; but default timeout and DNS reliability issues suggest some initial configuration tuning needed for production CI/CD use |
+
+---
+
+**CI verification:** These findings were independently reproduced through the automated GitHub Actions pipeline (`opensource-stack.yml`) on 7 July 2026, following a change from filesystem scanning (`trivy fs .`) to image scanning (`trivy image webgoat/webgoat`) to avoid a Maven Central rate-limit error encountered when the pipeline attempted live dependency resolution in CI. See `docs/implementation-log.md` (7 July entry) for full details.

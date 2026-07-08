@@ -66,3 +66,7 @@ Untrusted `github` context data (`${{ github.ref_name }}`) used directly in a `r
 | 4. Pipeline overhead | 78 seconds for 974 files — baseline figure for comparison against Azure-native equivalent |
 | 5. Cost | Free (Community tier); Pro tier (1,803 additional rules) requires paid account |
 | 6. SME suitability | No infrastructure required beyond `pip install`; runs locally or in CI within ~80 seconds — low barrier to entry |
+
+---
+
+**CI verification:** These findings were independently reproduced through the automated GitHub Actions pipeline (`opensource-stack.yml`) on 7 July 2026, following a fix to Semgrep's scan-target configuration (the `--no-git-ignore` flag was required for Semgrep to correctly scan the WebGoat git submodule). See `docs/implementation-log.md` (7 July entry) for full details.
