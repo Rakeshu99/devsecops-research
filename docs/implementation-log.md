@@ -373,3 +373,38 @@ All five open-source tools (Semgrep, Trivy, Trufflehog, Falco, OPA) are now inst
 3. Proceed with remaining Azure stack components: Dependabot, Defender for DevOps, Defender for Cloud, Microsoft Sentinel, Azure Policy.
 4. Build Azure stack GitHub Actions pipeline for equivalent timing comparison.
 5. Conduct comparative analysis across all six metrics.
+
+---
+
+## 7 July 2026 (continued) — Dependabot / GitHub Dependency Graph Limitation
+
+**Objective:** Enable Dependabot alerts for WebGoat's Java/Maven dependencies as part of the Azure/GitHub-native stack comparison, following the CI pipeline verification above.
+
+**Steps performed:**
+1. Enabled Dependabot alerts and Dependency graph under repository Settings → Advanced Security.
+2. Added `.github/dependabot.yml` configuring a Maven ecosystem entry pointed at `/app/webgoat`, the submodule's location, to attempt to target WebGoat's `pom.xml`.
+3. Waited for GitHub's scan to run and checked both the Dependabot alerts page and the Dependency graph directly.
+
+**Finding:** The Dependabot alerts page returned zero alerts, and the Dependency graph's Dependencies tab continued to show only 7 dependencies — all GitHub Actions references from the repository's own workflow files, none from WebGoat's `pom.xml`. Checking the Dependabot tab specifically showed two "Version update" jobs had run successfully against the Maven ecosystem entry with "No PRs affected," confirming the `dependabot.yml` path was valid and readable, but this did not translate into populated dependency graph entries or vulnerability alerts.
+
+Research into GitHub's documented behavior confirmed this is expected, not a misconfiguration: **the native GitHub dependency graph does not automatically scan or parse package manifests located inside Git submodules**, since GitHub evaluates each repository in isolation and treats a submodule strictly as a pointer (a commit reference) to an external repository, rather than as a local directory containing scannable manifest files. Dependabot's version-update bot and the Dependency Graph / alerting feature are more decoupled than initial configuration suggested — a `dependabot.yml` directory override is sufficient to trigger version-update jobs against a submodule path, but does not cause the Dependency Graph itself to index that path for alerting purposes.
+
+**Workarounds identified but not adopted:**
+1. **GitHub Dependency Submission API** — a custom GitHub Action step could check out the submodule and manually submit a dependency snapshot via API, bypassing native auto-discovery entirely.
+2. **Enable the dependency graph on the submodule's native repository** — not viable, since this requires administrative access to `github.com/WebGoat/WebGoat`, which this project does not own.
+
+Both were assessed as disproportionate effort relative to their contribution to this comparison, given Trivy's Docker-image-based scan already provides equivalent dependency-vulnerability coverage for WebGoat (see 22 June entry, 62 findings).
+
+**Corroboration check:** WebGoat's own public upstream repository has its dependency graph enabled by default (a standard GitHub behavior for public repositories), showing 93 total Maven dependencies. Searching this graph and the repository's source directly confirmed the same vulnerable dependency Trivy identified — `xstream 1.4.5` in `pom.xml`, line 111 — including a source code comment on the following line stating "do not update necessary for lesson," confirming WebGoat's maintainers deliberately hold this dependency at a vulnerable version for teaching purposes. This triangulates the finding across three independent sources: Trivy's image scan, GitHub's dependency graph on the upstream repository, and the source code itself.
+
+**Full evidence:** `metrics/results/screenshots/09-dependabot/`
+
+**Relevance to research:** This is a genuine, citable SME suitability finding (Metric 6), and arguably more valuable to the comparative analysis than a working Dependabot alert would have been. GitHub-native dependency scanning has an undocumented-at-setup-time gap for any project using git submodules to include third-party or vendored source code — a common pattern for exactly the kind of resource-constrained SME team this research targets. A team relying on Dependabot alone, without awareness of this limitation, would have a false sense of dependency-vulnerability coverage for any submodule-included code. This is directly relevant to Metric 3 (Setup Complexity) as well: correctly diagnosing this limitation required distinguishing between two related-but-distinct GitHub features (Dependabot version updates vs. the Dependency Graph/alerts pipeline) that are not clearly separated in GitHub's own UI.
+
+**Next steps:**
+1. Proceed with Defender for Cloud environment connection (GitHub integration for Defender for DevOps).
+2. Enable Defender for Cloud CSPM plan.
+3. Set up Microsoft Sentinel (Log Analytics workspace, then Sentinel onboarding).
+4. Configure Azure Policy (built-in Security Benchmark initiative).
+5. Build `azure-stack.yml` pipeline for equivalent timing comparison against the open-source stack.
+6. Conduct comparative analysis across all six metrics.
