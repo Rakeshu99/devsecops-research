@@ -26,13 +26,13 @@
 
 **Specification:**
 
-| Setting | Value |
-|---|---|
-| OS | Ubuntu 24.04.3 LTS (Server edition ISO, unattended install) |
-| Base Memory | 6144 MB |
-| Processors | 4 |
-| Disk | 50 GB, dynamically allocated, VDI format |
-| Network | NAT with port forwarding (SSH: 2222->22, WebGoat: 8080->8080, WebWolf: 9090->9090) |
+| Setting     | Value                                                                              |
+| ----------- | ---------------------------------------------------------------------------------- |
+| OS          | Ubuntu 24.04.3 LTS (Server edition ISO, unattended install)                        |
+| Base Memory | 6144 MB                                                                            |
+| Processors  | 4                                                                                  |
+| Disk        | 50 GB, dynamically allocated, VDI format                                           |
+| Network     | NAT with port forwarding (SSH: 2222->22, WebGoat: 8080->8080, WebWolf: 9090->9090) |
 
 **Justification:** Ubuntu was selected because Falco (the AI/ML runtime anomaly detection tool in the open-source stack) requires direct Linux kernel access and cannot run on Windows. Using a Linux VM also ensures the local testing environment matches the GitHub Actions Ubuntu runner used in the CI/CD pipeline, improving consistency between local and pipeline-based testing. Resource allocation (6GB RAM, 4 vCPU, 50GB disk) was sized to comfortably run Docker, WebGoat (a Java/Spring Boot application), and five security tools without resource contention, while remaining within the host laptop's 16GB RAM ceiling.
 
@@ -49,6 +49,7 @@
 **Justification:** SSH access improves workflow efficiency (proper terminal scrollback, copy-paste reliability) and mirrors how a real engineer would interact with a remote Linux server or CI/CD runner — relevant to the SME-realistic operating model the project is evaluating.
 
 **Command used:**
+
 ```bash
 sudo apt install openssh-server -y
 ```
@@ -60,6 +61,7 @@ sudo apt install openssh-server -y
 ### Step 4 — System Update
 
 **Command used:**
+
 ```bash
 sudo apt update && sudo apt upgrade -y
 ```
@@ -75,6 +77,7 @@ sudo apt update && sudo apt upgrade -y
 **Action:** Installed Docker Engine from Docker's official APT repository (not Ubuntu's default repository, which carries an outdated version).
 
 **Commands used:**
+
 ```bash
 sudo apt install ca-certificates curl gnupg -y
 sudo install -m 0755 -d /etc/apt/keyrings
@@ -90,9 +93,11 @@ newgrp docker
 **Result:** Docker Engine, CLI, containerd, Buildx plugin, and Compose plugin installed successfully. User added to `docker` group to allow running Docker commands without `sudo`.
 
 **Verification:**
+
 ```bash
 docker run hello-world
 ```
+
 Output confirmed: `Hello from Docker! This message shows that your installation appears to be working correctly.`
 
 **Screenshot:** `04-docker-install-complete.png`, `05-docker-hello-world.png`
@@ -102,11 +107,13 @@ Output confirmed: `Hello from Docker! This message shows that your installation 
 ### Step 6 — WebGoat Deployment
 
 **Command used:**
+
 ```bash
 docker run -d -p 8080:8080 -p 9090:9090 --name webgoat webgoat/webgoat
 ```
 
 **Result:** WebGoat image pulled successfully and container started. Application logs confirmed both Tomcat services started correctly:
+
 - Port 9090 (WebWolf) — started in ~53 seconds
 - Port 8080 (WebGoat) — started in ~87 seconds total
 
@@ -130,12 +137,12 @@ docker run -d -p 8080:8080 -p 9090:9090 --name webgoat webgoat/webgoat
 
 ## Summary — Environment Status as of 22 June 2026
 
-| Component | Status |
-|---|---|
-| Ubuntu 24.04 VM (6GB RAM, 4 vCPU, 50GB disk) | Provisioned and operational |
-| SSH remote access | Working |
-| Docker Engine | Installed and verified |
-| OWASP WebGoat | Deployed, accessible, user account created |
+| Component                                    | Status                                     |
+| -------------------------------------------- | ------------------------------------------ |
+| Ubuntu 24.04 VM (6GB RAM, 4 vCPU, 50GB disk) | Provisioned and operational                |
+| SSH remote access                            | Working                                    |
+| Docker Engine                                | Installed and verified                     |
+| OWASP WebGoat                                | Deployed, accessible, user account created |
 
 **Relevance to research:** This establishes the controlled test environment required for Phase 2 of the Design Science Research methodology (open-source stack construction and testing). The environment is now ready for the first security tool — Semgrep — to be integrated and run against WebGoat's source code as the first detection capability measurement (Metric 1).
 
@@ -146,6 +153,7 @@ docker run -d -p 8080:8080 -p 9090:9090 --name webgoat webgoat/webgoat
 **Objective:** Install Semgrep and run a static code analysis scan against WebGoat's source code to capture the first detection capability data point for the open-source stack.
 
 **Steps performed:**
+
 1. Cloned WebGoat source repository (`github.com/WebGoat/WebGoat`) into the VM — 48,813 objects, full Java/Spring Boot codebase.
 2. Installed Semgrep via `pip3 install semgrep --break-system-packages`. Required adding `~/.local/bin` to `PATH` (`source ~/.bashrc`) since `pip3` installed scripts there by default.
 3. Ran `semgrep --config=p/owasp-top-ten` against the WebGoat source tree.
@@ -165,6 +173,7 @@ docker run -d -p 8080:8080 -p 9090:9090 --name webgoat webgoat/webgoat
 **Objective:** Install Trivy and scan the WebGoat Docker image for known CVEs in OS packages and Java dependencies, providing a second, complementary data point to Semgrep's code-level findings.
 
 **Steps performed:**
+
 1. Attempted install via the official Trivy install script — failed with a DNS resolution error (`Could not resolve host: get.trivy.dev`).
 2. Switched to Trivy's official APT repository as a fallback. Successfully installed Trivy v0.71.2.
 3. Ran `trivy image webgoat/webgoat --severity CRITICAL,HIGH` against the running WebGoat image.
@@ -173,6 +182,7 @@ docker run -d -p 8080:8080 -p 9090:9090 --name webgoat webgoat/webgoat
 **Result:** 62 vulnerabilities total — 11 (all HIGH) in the Ubuntu 24.04 OS layer, and 51 (39 HIGH, 12 CRITICAL) in `webgoat.jar`'s Java dependencies. Most significant CRITICAL findings: CVE-2013-7285 (XStream 1.4.5, remote code execution via insecure deserialization), CVE-2026-41293 (Tomcat, HTTP/2 header validation bypass), CVE-2025-41232 (Spring Security Core, authorization bypass), CVE-2026-22732 (Spring Security Web, policy bypass), CVE-2026-40477 (Thymeleaf, server-side template injection).
 
 **Issues encountered:**
+
 - Official install script unreliable (DNS resolution failure) — required fallback to APT method.
 - Default timeout insufficient for this image's size and complexity — required manual override.
 - First-run database downloads (97 MiB vulnerability DB + 884 MiB Java DB) added approximately 9 minutes of one-time setup overhead before any scanning began. Both databases are cached locally afterward (Java DB cached for 3 days).
@@ -189,6 +199,7 @@ docker run -d -p 8080:8080 -p 9090:9090 --name webgoat webgoat/webgoat
 **Objective:** Install Trufflehog and scan WebGoat's source code for hardcoded secrets and credentials, then supplement with a controlled test to generate a genuine detection-capability data point.
 
 **Steps performed:**
+
 1. Installed Trufflehog v3.95.6 via the official install script. Initial attempt failed with a permissions error (`cannot create regular file '/usr/local/bin/trufflehog': Permission denied`) — resolved by re-running with `sudo`.
 2. First scan attempt failed with an updater error (`cannot move binary`) caused by Trufflehog's auto-update check attempting to write to a root-owned binary path. Resolved using the `--no-update` flag.
 3. Ran `trufflehog filesystem . --no-update` against the WebGoat source tree.
@@ -215,6 +226,7 @@ docker run -d -p 8080:8080 -p 9090:9090 --name webgoat webgoat/webgoat
 **Objective:** Install Falco and verify runtime anomaly detection capability against the running WebGoat container — the only tool in the open-source stack operating at runtime rather than at the pre-pipeline/build stage.
 
 **Steps performed:**
+
 1. Installed Falco v0.44.1 via the official APT repository (chosen directly over the install script, having learned from Trivy's earlier DNS-related install script failure).
 2. Falco's installer automatically selected the modern eBPF driver (`falco-modern-bpf.service`) rather than a kernel module — more portable for a VM environment, no kernel module build/load step required.
 3. Confirmed service active via `systemctl status falco` — rules loaded with valid schema, monitoring syscalls across all CPUs.
@@ -224,6 +236,7 @@ docker run -d -p 8080:8080 -p 9090:9090 --name webgoat webgoat/webgoat
 7. Triggered a test anomaly: spawned an interactive shell inside the running WebGoat container (`docker exec -it webgoat /bin/bash`), attempted to read `/etc/shadow` (denied — confirms WebGoat runs as non-root `webgoat` user), then exited.
 
 **Result:** Falco successfully detected both shell-spawn attempts, logging full forensic context for each:
+
 ```
 Notice A shell was spawned in a container with an attached terminal |
 evt_type=execve user=webgoat user_uid=1001 process=bash
@@ -244,6 +257,7 @@ container_image_repository=webgoat/webgoat container_image_tag=latest
 **Objective:** Install OPA, author a custom Rego policy targeting CI/CD security risk, and validate it against both a true-positive and true-negative test case — completing the final tool in the open-source stack.
 
 **Steps performed:**
+
 1. Installed OPA v0.68.0 via direct binary download (avoiding package manager dependency issues encountered with Trivy and Falco earlier).
 2. Authored a custom Rego policy (`github-actions-security.rego`) targeting the same risk class Semgrep identified independently in Tool 1: untrusted `github` context data used directly in a `run:` shell step without sanitisation.
 3. Converted WebGoat's `.github/workflows/release.yml` from YAML to JSON using a one-line Python script with `pyyaml`, since OPA evaluates structured JSON input.
@@ -289,6 +303,7 @@ All five open-source tools (Semgrep, Trivy, Trufflehog, Falco, OPA) are now inst
 **Note on Falco:** Falco is not included in the GitHub Actions pipeline because it requires kernel-level access (eBPF probes) which is not available on GitHub's hosted Ubuntu runners. Falco's runtime monitoring is documented separately as a local VM finding. This is itself a relevant SME suitability observation — Falco cannot be directly integrated into a standard hosted CI/CD pipeline without self-hosted runners or a dedicated agent.
 
 **Tools integrated:**
+
 - Semgrep — OWASP Top Ten ruleset, JSON output uploaded as artifact
 - Trivy — filesystem scan, CRITICAL and HIGH severity, JSON output uploaded as artifact
 - Trufflehog — filesystem secret scan, JSON output uploaded as artifact
@@ -298,25 +313,26 @@ All five open-source tools (Semgrep, Trivy, Trufflehog, Falco, OPA) are now inst
 
 **Pipeline timing results (initial, superseded — see 7 July entry):**
 
-| Pipeline | Runs | Average Time |
-|---|---|---|
-| Baseline (no security tools) | 3 runs | ~12 seconds |
-| Open-Source Security Stack | 2 runs | ~26 seconds |
-| **Net security gate overhead** | | **~14 seconds per pipeline run** |
+| Pipeline                             | Runs   | Average Time                           |
+| ------------------------------------ | ------ | -------------------------------------- |
+| Baseline (no security tools)         | 3 runs | ~12 seconds                            |
+| Open-Source Security Stack           | 2 runs | ~26 seconds                            |
+| **Net security gate overhead** |        | **~14 seconds per pipeline run** |
 
 **Individual job timing (initial, superseded):**
 
-| Tool | Time | Notes |
-|---|---|---|
-| Semgrep | 20s | Downloads ruleset on each run |
-| Trivy | 22s | Downloads vulnerability DB on each run |
-| Trufflehog | 8s | Lightweight |
-| OPA | 8s | Near-instantaneous |
-| **Total (parallel)** | **27s** | |
+| Tool                       | Time          | Notes                                  |
+| -------------------------- | ------------- | -------------------------------------- |
+| Semgrep                    | 20s           | Downloads ruleset on each run          |
+| Trivy                      | 22s           | Downloads vulnerability DB on each run |
+| Trufflehog                 | 8s            | Lightweight                            |
+| OPA                        | 8s            | Near-instantaneous                     |
+| **Total (parallel)** | **27s** |                                        |
 
 **Important note added 7 July 2026:** these initial timing figures were later discovered to have been measured while the pipeline's checkout step was not correctly pulling in the WebGoat submodule (see entry below) — meaning the tools were running against a repository with no WebGoat content present. These figures are retained here for transparency but are superseded and must not be used in the comparative analysis. Corrected timing is pending re-measurement under fixed conditions.
 
 **Screenshot evidence:**
+
 - `metrics/results/screenshots/07-pipeline-integration/01-baseline-pipeline-run.png`
 - `metrics/results/screenshots/07-pipeline-integration/02-opensource-pipeline-runs.png`
 - `metrics/results/screenshots/07-pipeline-integration/03-opensource-pipeline-job-timings.png`
@@ -328,6 +344,7 @@ All five open-source tools (Semgrep, Trivy, Trufflehog, Falco, OPA) are now inst
 **Objective:** Begin Phase 3 (Azure cloud-native stack) with the GitHub-native component of the Azure comparison — GitHub Advanced Security's CodeQL — since it required WebGoat to be present as an analysable target within the repository for the first time.
 
 **Steps performed:**
+
 1. Added WebGoat as a Git submodule at `app/webgoat` (commit `8211cf2`), pointing to the upstream `WebGoat/WebGoat` repository.
 2. Enabled GitHub Advanced Security and Dependabot alerts/dependency graph under repository Settings.
 3. Configured a CodeQL Advanced workflow (`codeql.yml`) with `submodules: recursive` on checkout (correctly configured from the start, unlike the open-source stack pipeline — see below), JDK 25, and a manual Maven build after troubleshooting build-mode and JDK version iterations.
@@ -350,12 +367,14 @@ All five open-source tools (Semgrep, Trivy, Trufflehog, Falco, OPA) are now inst
 **Verification process:** Each tool's previously reported manual findings (Semgrep 20, Trivy 62, Trufflehog 2 WebGoat findings, OPA true-positive/negative) were re-confirmed against their original raw output logs and were found to be genuine and accurate — they had been generated by running each tool directly against a manually-cloned copy of WebGoat on the VM, independent of the (at-the-time non-functional) automated pipeline. The automated pipeline itself, however, had never successfully scanned WebGoat until the fixes below were applied.
 
 **Fixes applied:**
+
 1. Added `submodules: recursive` to all four checkout steps in `opensource-stack.yml`.
 2. **Semgrep:** even with the submodule correctly checked out to disk, Semgrep's default file-discovery only considers files tracked by the *current* repository's git index — a submodule's files are tracked by the submodule's own `.git`, so they were silently excluded. Fixed by adding `--no-git-ignore` to the scan command, forcing Semgrep to scan the actual filesystem rather than relying on git-tracked-file discovery.
 3. **Trivy:** the pipeline used `trivy fs .` (filesystem scan), which — once WebGoat's Java source was actually present — attempted live Maven dependency resolution against Maven Central and failed with a `429 Too Many Requests` error (GitHub-hosted runners share IP ranges, exhausting Maven's public rate limit). Fixed by switching to `trivy image webgoat/webgoat --timeout 15m`, matching the Docker-image-based method already used and documented in the original manual Trivy scan (see 22 June entry) — this reads the pre-built image's dependency manifest directly with no live external resolution required.
 4. **Trufflehog and OPA** required no command changes; the submodule checkout fix alone was sufficient for Trufflehog (it does not exclude submodule content the way Semgrep's default mode does), and OPA's job was never intended to scan WebGoat in the first place (it evaluates the repository's own workflow YAML, by design).
 
 **Re-verification result:** Following the fixes, a fresh pipeline run was triggered and all four artifacts were downloaded and inspected directly:
+
 - **Semgrep:** confirmed scanning real `app/webgoat/src/...` paths, producing the same categories of findings as the original manual scan (SQL injection, path traversal, MD5 usage, SSRF, the `release.yml` shell injection).
 - **Trivy:** confirmed real XStream, Tomcat, and Spring Security CVEs against `home/webgoat/webgoat.jar/BOOT-INF/lib/...` paths, matching the original manual scan.
 - **Trufflehog:** confirmed the same two JWT findings at the same file paths and line numbers (`JWT.html:323`, `JWT_libraries.adoc:40`) as the original manual scan.
@@ -368,6 +387,7 @@ All five open-source tools (Semgrep, Trivy, Trufflehog, Falco, OPA) are now inst
 **Relevance to research:** This is a legitimate Design Science Research iteration — build, evaluate, discover flaw, refine, re-evaluate — applied to the evaluation instrument itself (the CI pipeline) rather than to WebGoat. It also produces a directly citable Metric 3 (Setup Complexity) finding: correctly wiring open-source security tools into a real CI/CD pipeline against a codebase that includes git submodules required non-obvious, tool-specific configuration beyond the basic checkout step, a friction point an SME team would need to budget time for.
 
 **Next steps:**
+
 1. Re-measure pipeline timing under corrected conditions (previous 12s/27s figures are void).
 2. Update README status table to reflect verified CI pipeline completion.
 3. Proceed with remaining Azure stack components: Dependabot, Defender for DevOps, Defender for Cloud, Microsoft Sentinel, Azure Policy.
@@ -381,6 +401,7 @@ All five open-source tools (Semgrep, Trivy, Trufflehog, Falco, OPA) are now inst
 **Objective:** Enable Dependabot alerts for WebGoat's Java/Maven dependencies as part of the Azure/GitHub-native stack comparison, following the CI pipeline verification above.
 
 **Steps performed:**
+
 1. Enabled Dependabot alerts and Dependency graph under repository Settings → Advanced Security.
 2. Added `.github/dependabot.yml` configuring a Maven ecosystem entry pointed at `/app/webgoat`, the submodule's location, to attempt to target WebGoat's `pom.xml`.
 3. Waited for GitHub's scan to run and checked both the Dependabot alerts page and the Dependency graph directly.
@@ -390,6 +411,7 @@ All five open-source tools (Semgrep, Trivy, Trufflehog, Falco, OPA) are now inst
 Research into GitHub's documented behavior confirmed this is expected, not a misconfiguration: **the native GitHub dependency graph does not automatically scan or parse package manifests located inside Git submodules**, since GitHub evaluates each repository in isolation and treats a submodule strictly as a pointer (a commit reference) to an external repository, rather than as a local directory containing scannable manifest files. Dependabot's version-update bot and the Dependency Graph / alerting feature are more decoupled than initial configuration suggested — a `dependabot.yml` directory override is sufficient to trigger version-update jobs against a submodule path, but does not cause the Dependency Graph itself to index that path for alerting purposes.
 
 **Workarounds identified but not adopted:**
+
 1. **GitHub Dependency Submission API** — a custom GitHub Action step could check out the submodule and manually submit a dependency snapshot via API, bypassing native auto-discovery entirely.
 2. **Enable the dependency graph on the submodule's native repository** — not viable, since this requires administrative access to `github.com/WebGoat/WebGoat`, which this project does not own.
 
@@ -402,6 +424,7 @@ Both were assessed as disproportionate effort relative to their contribution to 
 **Relevance to research:** This is a genuine, citable SME suitability finding (Metric 6), and arguably more valuable to the comparative analysis than a working Dependabot alert would have been. GitHub-native dependency scanning has an undocumented-at-setup-time gap for any project using git submodules to include third-party or vendored source code — a common pattern for exactly the kind of resource-constrained SME team this research targets. A team relying on Dependabot alone, without awareness of this limitation, would have a false sense of dependency-vulnerability coverage for any submodule-included code. This is directly relevant to Metric 3 (Setup Complexity) as well: correctly diagnosing this limitation required distinguishing between two related-but-distinct GitHub features (Dependabot version updates vs. the Dependency Graph/alerts pipeline) that are not clearly separated in GitHub's own UI.
 
 **Next steps:**
+
 1. Proceed with Defender for Cloud environment connection (GitHub integration for Defender for DevOps).
 2. Enable Defender for Cloud CSPM plan.
 3. Set up Microsoft Sentinel (Log Analytics workspace, then Sentinel onboarding).
@@ -416,6 +439,7 @@ Both were assessed as disproportionate effort relative to their contribution to 
 **Objective:** Connect Microsoft Defender for Cloud to the project's GitHub repository, enabling the Defender CSPM plan as the next component of the Azure cloud-native stack.
 
 **Steps performed:**
+
 1. Navigated to Defender for Cloud → Environment settings → Add environment → GitHub.
 2. Configured connector `devsecopsresearch-gh`, resource group `devsecops-research-rg`, initial location North Europe.
 3. Authorized the Microsoft Security DevOps GitHub App, scoped to "Only select repositories" → `devsecops-research` only (not all repositories), with read-only permissions to Dependabot alerts, metadata, secret scanning alerts, and security events.
@@ -437,6 +461,7 @@ Both were assessed as disproportionate effort relative to their contribution to 
 **Relevance to research:** Two citable findings for this phase. First, Metric 3 (Setup Complexity): the region-restriction policy failure was not discoverable from the connector wizard's own UI (which offered invalid region choices) and required inspecting the Azure Activity Log's raw JSON to diagnose — a non-trivial troubleshooting step for a team without prior Azure Policy experience. Second, and more significant for Metric 6 (SME Suitability) and the overall comparative analysis: Defender for Cloud's headline "75 findings" should not be read as evidence of independent, additive detection capability beyond CodeQL — the substantial overlap means an SME already running CodeQL directly would gain centralised dashboarding and a small number of additional IaC/dependency scanner findings from enabling Defender for Cloud, but not a materially different security posture. This directly informs the "is a paid/cloud-native security gate worth it over free, self-hosted tools" question at the core of this dissertation's research question.
 
 **Next steps:**
+
 1. Set up Microsoft Sentinel — Log Analytics workspace, then Sentinel onboarding (31-day free trial, 10 GB/day cap; monitor against Azure budget alert).
 2. Configure Azure Policy — assign built-in Security Benchmark initiative.
 3. Build `azure-stack.yml` GitHub Actions pipeline for equivalent timing comparison against the open-source and baseline pipelines.
@@ -449,17 +474,20 @@ Both were assessed as disproportionate effort relative to their contribution to 
 **Objective:** Set up Microsoft Sentinel as the Azure-native equivalent to Falco (runtime/anomaly detection) in the comparison stack, and connect it to existing Defender for Cloud alert data.
 
 **Steps performed:**
+
 1. Created a Log Analytics workspace `devsecops-research-law`, Sweden Central (applying the region lesson learned from the Defender for Cloud setup, rather than repeating the North/West Europe mistake).
 2. Onboarded Microsoft Sentinel to that workspace via Azure Portal → Microsoft Sentinel → Add to a workspace.
 
 **Result:** Sentinel activated successfully, no region issues this time. Free trial confirmed active from **10 July 2026 to 8 August 2026, 23:59:59 UTC**, with a 10GB/day free ingestion cap for both Sentinel and Log Analytics combined.
 
 **Cost verification:** Ran the following KQL query directly in Sentinel's Logs blade to confirm actual ingestion volume, both over a 7-day window and scoped to the current day:
+
 ```kql
 Usage
 | where TimeGenerated > ago(7d)
 | summarize TotalGB = sum(Quantity)/1000 by DataType
 ```
+
 Result: no results returned in either time window — confirmed **zero data ingestion**, meaning zero cost incurred and zero risk of exceeding the 10GB/day trial cap under current configuration. This was verified before assuming safety, following the same "check, don't assume" discipline applied throughout this project after the Trivy/Semgrep validation issues discovered earlier.
 
 **Issue found — connecting Defender for Cloud data to Sentinel:** Attempted to wire Defender for Cloud's existing 75 findings into Sentinel via the classic Sentinel Data Connectors page (Configuration → Data connectors). Encountered two separate points of friction:
@@ -478,7 +506,75 @@ Checked the Incidents page directly (unified portal → Incidents): showed **0 I
 **Relevance to research:** Several citable findings for Metric 3 (Setup Complexity) and Metric 6 (SME Suitability). First, Sentinel is mid-migration to a new unified portal experience at the time of this research, meaning documentation, connector availability, and UI paths are inconsistent between the classic and unified experiences — a real friction point for any team setting this up today without prior familiarity. Second, the licensing wall encountered (M365 E5/A5 requirement) for full XDR telemetry, while ultimately not a blocker for this project's specific CSPM-alert use case, is a genuine SME-relevant limitation: a small team without enterprise M365 licensing would be unable to access Sentinel's full detection surface, even while technically able to run a free trial. Third, and positively: unlike the Defender for Cloud region-restriction issue, this connection problem cost no money and no failed resource deployments — it was purely a navigation/routing issue, resolved without financial risk, which is itself a relevant data point when comparing the two Azure components' setup complexity.
 
 **Next steps:**
+
 1. Confirm whether an analytics rule was successfully enabled and whether this produced any Sentinel incidents from Defender for Cloud alert data.
 2. Configure Azure Policy — assign built-in Security Benchmark initiative at subscription scope.
 3. Build `azure-stack.yml` GitHub Actions pipeline for equivalent timing comparison, applying the image/artifact-scan lesson learned from Trivy's earlier Maven rate-limit issue in the open-source stack.
 4. Conduct comparative analysis across all six metrics.
+
+
+## 10 July 2026 — Sentinel Root-Cause Resolution & Azure Policy Assignment
+
+### Sentinel: root cause identified
+
+Continuing from the earlier "in progress" Sentinel setup, this session diagnosed why
+zero incidents/alerts were surfacing despite Defender for Cloud showing 75 confirmed
+findings.
+
+Diagnostic path (evidence: screenshots/11-sentinel/07–10):
+
+- Verified Incidents page: 0 rows, unfiltered (07-incidents-empty-unfiltered.png)
+- Verified Alerts page: 0 rows, unfiltered (08-alerts-empty-unfiltered.png)
+- Checked Defender portal's Data Connectors view: showed only 1 connector
+  (Microsoft 365 Insider Risk Management) (09a)
+- Checked Azure-native Sentinel blade's Data Connectors view (same workspace,
+  devsecops-research-law): showed 7 connectors, all from the M365 Defender (XDR)
+  family (Insider Risk, Cloud Apps, Endpoint, Identity, Office 365, XDR) — none
+  related to Defender for Cloud / Azure resource CSPM (09b)
+- **Note:** the two portals returned inconsistent connector counts for the same
+  workspace, despite Microsoft's stated UI unification — documented as a platform-
+  transition maturity finding, not resolved further.
+- Navigated to Cloud Security → Overview in the unified Defender portal: found
+  tenant had never been "prepared" for Cloud Security experience — a distinct,
+  one-time onboarding step separate from both the Defender for Cloud GitHub
+  connector (already live) and the Sentinel data connector gallery.
+
+**Root cause:** Defender for Cloud's alert generation was fully functional
+(confirmed via 75 findings), but those alerts never reached the unified portal's
+Incidents/Alerts views because tenant-level Cloud Security onboarding had not been
+triggered. This is a non-obvious dependency not surfaced by either the Defender for
+Cloud setup flow or the Sentinel connector gallery.
+
+**Action taken:** Initiated tenant preparation via Cloud Security → Overview →
+"Prepare my tenant" at 09:22 PM, 10 July 2026 (screenshot 10, timestamp visible in
+taskbar). Process ETA up to 6 hours per Microsoft's own dialog. Incidents/Alerts
+population to be re-verified in a follow-up session.
+
+**Finding for SME-suitability chapter:** a two-step, non-obvious dependency chain
+between products that appear integrated in the UI but require separate manual
+onboarding — a real source of setup complexity for a small team without deep
+platform familiarity.
+
+### Azure Policy: Microsoft cloud security benchmark v2 assigned
+
+- Found a pre-existing default assignment, "ASC Default," auto-provisioned by
+  Defender for Cloud on subscription creation — 226 policies, Audit effect,
+  zero manual configuration required (screenshot 01). Documented as evidence of
+  built-in baseline governance.
+- Assigned "Microsoft cloud security benchmark v2" (730 policies, 92 groups,
+  Built-in, Audit effect) at subscription scope
+  (ae420492-c95a-4e2f-9a32-846c54cb286c) for comprehensive coverage beyond the
+  default baseline (screenshots 02–03).
+- Assignment confirmed successful at 10:02 PM, 10 July 2026. A secondary "Role
+  Assignments creation failed — already exists" notification appeared; this is
+  benign (idempotency artifact from an earlier partial submission attempt), not
+  a real failure — the initiative assignment itself succeeded.
+- Compliance evaluation pending; Microsoft states results take 5–15 minutes to
+  begin populating, full evaluation may take longer. To be re-verified in a
+  follow-up session.
+
+**Finding for SME-suitability chapter:** Azure ships partial governance
+automatically (226 policies via ASC Default) but achieving comprehensive coverage
+(730 policies) requires deliberate, informed action — a default-vs-optimal
+configuration gap relevant to teams who assume "secure by default" without
+checking what that default actually covers.
