@@ -95,7 +95,7 @@ DSR was selected because this project builds and evaluates a technical artefact,
 | CodeQL / GitHub Advanced Security | 71 (3 Critical, 52 High, 16 Medium) | See `metrics/results/screenshots/08-azure-ghas/` |
 | Dependabot | Not populated — documented GitHub limitation | GitHub's dependency graph does not scan manifests inside git submodules; see `docs/implementation-log.md`, 7 July entry |
 | Defender for Cloud | 75 findings (3 Critical, 52 High, 20 Medium) | Substantially the same underlying data as CodeQL, aggregated with a small number of additional scanner findings (Checkov, Bandit, ESLint) — not a fully independent detection engine, see note below |
-| Microsoft Sentinel | Not started | |
+| Microsoft Sentinel | Workspace and trial active, 0 incidents so far | 31-day free trial (10 Jul–8 Aug 2026), 10GB/day cap; zero ingestion confirmed via KQL, no cost risk to date; see `docs/implementation-log.md` for platform-migration troubleshooting |
 | Azure Policy | Not started | |
 
 **Notable finding — Defender for Cloud is a dashboard layer, not independent detection:** Defender for Cloud's "DevOps security" findings (75 total) closely match CodeQL's own results (71 total) on Critical and High counts exactly (3 and 52 respectively), with a small additional set of Medium findings. This confirms Defender for Cloud aggregates CodeQL's scan results into its dashboard, rather than running a fully separate detection engine. This is a relevant SME suitability finding: Defender for Cloud's primary value in this context is centralised visibility and reporting, not additional independent detection coverage.
@@ -132,7 +132,7 @@ DSR was selected because this project builds and evaluates a technical artefact,
 | Azure — CodeQL / GitHub Advanced Security | ✅ Complete — 71 findings, verified |
 | Azure — Dependabot | 🔶 Documented as a limitation — submodule dependency scanning not supported natively, corroborated against WebGoat's upstream repo |
 | Azure — Defender for Cloud | ✅ Complete — GitHub connector live, 75 findings confirmed, region-restriction issue resolved (Sweden Central) |
-| Azure — Microsoft Sentinel | ⬜ Not started |
+| Azure — Microsoft Sentinel | 🔶 In progress — workspace and trial active (10 Jul–8 Aug 2026), zero ingestion/cost confirmed, platform-migration friction documented, analytics rule setup pending verification |
 | Azure — Azure Policy | ⬜ Not started |
 | Azure stack GitHub Actions pipeline (CI automation, timing) | ⬜ Not started |
 | Comparative analysis | ⬜ Not started |

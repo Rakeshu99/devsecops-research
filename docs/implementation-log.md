@@ -441,3 +441,44 @@ Both were assessed as disproportionate effort relative to their contribution to 
 2. Configure Azure Policy — assign built-in Security Benchmark initiative.
 3. Build `azure-stack.yml` GitHub Actions pipeline for equivalent timing comparison against the open-source and baseline pipelines.
 4. Conduct comparative analysis across all six metrics.
+
+---
+
+## 10 July 2026 — Microsoft Sentinel Setup and Connection Troubleshooting
+
+**Objective:** Set up Microsoft Sentinel as the Azure-native equivalent to Falco (runtime/anomaly detection) in the comparison stack, and connect it to existing Defender for Cloud alert data.
+
+**Steps performed:**
+1. Created a Log Analytics workspace `devsecops-research-law`, Sweden Central (applying the region lesson learned from the Defender for Cloud setup, rather than repeating the North/West Europe mistake).
+2. Onboarded Microsoft Sentinel to that workspace via Azure Portal → Microsoft Sentinel → Add to a workspace.
+
+**Result:** Sentinel activated successfully, no region issues this time. Free trial confirmed active from **10 July 2026 to 8 August 2026, 23:59:59 UTC**, with a 10GB/day free ingestion cap for both Sentinel and Log Analytics combined.
+
+**Cost verification:** Ran the following KQL query directly in Sentinel's Logs blade to confirm actual ingestion volume, both over a 7-day window and scoped to the current day:
+```kql
+Usage
+| where TimeGenerated > ago(7d)
+| summarize TotalGB = sum(Quantity)/1000 by DataType
+```
+Result: no results returned in either time window — confirmed **zero data ingestion**, meaning zero cost incurred and zero risk of exceeding the 10GB/day trial cap under current configuration. This was verified before assuming safety, following the same "check, don't assume" discipline applied throughout this project after the Trivy/Semgrep validation issues discovered earlier.
+
+**Issue found — connecting Defender for Cloud data to Sentinel:** Attempted to wire Defender for Cloud's existing 75 findings into Sentinel via the classic Sentinel Data Connectors page (Configuration → Data connectors). Encountered two separate points of friction:
+
+1. Searching "Defender for Cloud" in the classic connector list returns only "Microsoft Defender for Cloud Apps" — a different, unrelated product (a CASB/SaaS security tool). No connector literally named "Microsoft Defender for Cloud" exists in this list.
+2. Investigated "Microsoft Defender XDR" as the next-closest candidate, since its description explicitly lists "Microsoft Defender for Cloud" as part of its suite. Opening this connector's setup page showed two blockers: (a) the "Connect incidents & alerts" toggle was disabled with the message "One or more of your workspaces are onboarded to Unified Security Operations Platform. Incidents and alerts configuration is disabled" — meaning this classic connector path has been superseded; (b) the "Connect events" section, listing raw telemetry tables (DeviceInfo, DeviceProcessEvents, etc.), requires an M365 E5 or M365 A5 license, which an Azure for Students subscription does not include. This second blocker was assessed as a red herring for this project's purposes — it applies to Defender for Endpoint/Identity/Office 365 telemetry (employee device and email monitoring), which is irrelevant to a research project with no real organisational infrastructure behind it, not to Defender for Cloud's CSPM alert data specifically.
+
+**Resolution:** Navigated to the unified Microsoft Defender portal directly, via the in-app link provided on Sentinel's Overview page ("This page has been moved to the Defender portal... Click here to go to the Defender portal"), rather than typing `security.microsoft.com` manually — a manual attempt at the bare URL returned a tenant-mismatch error ("Selected user account does not exist in tenant 'Microsoft Services'..."), since the generic URL does not carry the correct tenant context. The in-app link correctly resolved to `security.microsoft.com/homepage?tid=d3101c57-5c4d-43d7-9afa-fa10bc5635fc`.
+
+Within the unified Defender portal, confirmed via an on-screen banner: **"Defender for Cloud alerts and incidents are now available in the Microsoft Defender portal"** — meaning Defender for Cloud's data was already available in this unified view natively, without requiring the classic Sentinel connector at all. The home dashboard's "SOC optimization" card showed 13 active items, consistent with the previously confirmed Defender for Cloud findings.
+
+Checked the Incidents page directly (unified portal → Incidents): showed **0 Incidents** at time of writing. This is expected — Sentinel requires an active Analytics rule to correlate raw alerts into incidents; alert data being present does not automatically generate incidents without this configuration step. Analytics rule setup was in progress at the end of this working session; outcome to be confirmed and documented in a follow-up entry.
+
+**Full evidence:** `metrics/results/screenshots/11-sentinel/`
+
+**Relevance to research:** Several citable findings for Metric 3 (Setup Complexity) and Metric 6 (SME Suitability). First, Sentinel is mid-migration to a new unified portal experience at the time of this research, meaning documentation, connector availability, and UI paths are inconsistent between the classic and unified experiences — a real friction point for any team setting this up today without prior familiarity. Second, the licensing wall encountered (M365 E5/A5 requirement) for full XDR telemetry, while ultimately not a blocker for this project's specific CSPM-alert use case, is a genuine SME-relevant limitation: a small team without enterprise M365 licensing would be unable to access Sentinel's full detection surface, even while technically able to run a free trial. Third, and positively: unlike the Defender for Cloud region-restriction issue, this connection problem cost no money and no failed resource deployments — it was purely a navigation/routing issue, resolved without financial risk, which is itself a relevant data point when comparing the two Azure components' setup complexity.
+
+**Next steps:**
+1. Confirm whether an analytics rule was successfully enabled and whether this produced any Sentinel incidents from Defender for Cloud alert data.
+2. Configure Azure Policy — assign built-in Security Benchmark initiative at subscription scope.
+3. Build `azure-stack.yml` GitHub Actions pipeline for equivalent timing comparison, applying the image/artifact-scan lesson learned from Trivy's earlier Maven rate-limit issue in the open-source stack.
+4. Conduct comparative analysis across all six metrics.
