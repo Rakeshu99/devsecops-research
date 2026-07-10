@@ -408,3 +408,36 @@ Both were assessed as disproportionate effort relative to their contribution to 
 4. Configure Azure Policy (built-in Security Benchmark initiative).
 5. Build `azure-stack.yml` pipeline for equivalent timing comparison against the open-source stack.
 6. Conduct comparative analysis across all six metrics.
+
+---
+
+## 8 July 2026 — Defender for Cloud GitHub Connector Setup
+
+**Objective:** Connect Microsoft Defender for Cloud to the project's GitHub repository, enabling the Defender CSPM plan as the next component of the Azure cloud-native stack.
+
+**Steps performed:**
+1. Navigated to Defender for Cloud → Environment settings → Add environment → GitHub.
+2. Configured connector `devsecopsresearch-gh`, resource group `devsecops-research-rg`, initial location North Europe.
+3. Authorized the Microsoft Security DevOps GitHub App, scoped to "Only select repositories" → `devsecops-research` only (not all repositories), with read-only permissions to Dependabot alerts, metadata, secret scanning alerts, and security events.
+4. Selected Defender CSPM capability (listed as "Free during preview" at time of setup).
+5. Clicked Create.
+
+**Issue found:** Connector creation failed with a "'deny' Policy action" error. Investigating via the Azure Activity Log (JSON detail view) identified the cause: a system-level policy assignment named `sys.regionrestriction` ("Allowed resource deployment regions"), applied automatically to the Azure for Students subscription, restricts resource deployment to a specific allow-list of regions: Switzerland North, Sweden Central, Poland Central, Canada Central, Spain Central. Neither North Europe nor West Europe — both of which appeared as selectable options in the connector wizard's Location dropdown — are on this list, meaning the UI did not filter location options by actual policy-permitted regions, allowing an invalid selection to be made and only failing at creation time.
+
+**Fix applied:** Recreated the connector with Location set to Sweden Central. Connector created successfully on retry.
+
+**Result:** Connector status confirmed "Connected," 1/1 Defender plans active, 2 resources discovered. The "DevOps security" dashboard subsequently populated with 75 total findings (3 Critical, 52 High, 20 Medium, 0 Low): 71 Code findings, 4 Infrastructure as Code findings, 0 Secret findings, 0 Dependency findings.
+
+**Cross-check against CodeQL:** Comparing Defender for Cloud's Code findings (71, with Critical=3 and High=52) against the CodeQL results documented in the 30 June – 6 July entry above (71 findings, Critical=3, High=52) shows an exact match on Critical and High counts. This confirms Defender for Cloud's "DevOps security" dashboard substantially surfaces CodeQL's own scan results rather than running a fully independent detection engine — the connector's scanner list (`eslint, bandit, templateanalyzer, checkov, trivy`) includes additional lightweight scanners (likely accounting for the small increase from 71 to 75 total findings, and the Medium count difference of 16 vs 20), but the core code-vulnerability detection is CodeQL-derived.
+
+**Verification of individual findings:** Drilled into the Recommendations view (Security posture → GitHub environment filter → Vulnerabilities tab) to confirm findings were live and specific, not a cached or placeholder count. Confirmed individual findings including "Arbitrary file access during archive extraction ('Zip Slip')," "Deserialization of user-controlled data," "Disabled Spring CSRF protection," and others, each attributed directly to the `devsecops-research` repository — matching finding categories already documented from the CodeQL scan.
+
+**Full evidence:** `metrics/results/screenshots/10-defender-devops/`
+
+**Relevance to research:** Two citable findings for this phase. First, Metric 3 (Setup Complexity): the region-restriction policy failure was not discoverable from the connector wizard's own UI (which offered invalid region choices) and required inspecting the Azure Activity Log's raw JSON to diagnose — a non-trivial troubleshooting step for a team without prior Azure Policy experience. Second, and more significant for Metric 6 (SME Suitability) and the overall comparative analysis: Defender for Cloud's headline "75 findings" should not be read as evidence of independent, additive detection capability beyond CodeQL — the substantial overlap means an SME already running CodeQL directly would gain centralised dashboarding and a small number of additional IaC/dependency scanner findings from enabling Defender for Cloud, but not a materially different security posture. This directly informs the "is a paid/cloud-native security gate worth it over free, self-hosted tools" question at the core of this dissertation's research question.
+
+**Next steps:**
+1. Set up Microsoft Sentinel — Log Analytics workspace, then Sentinel onboarding (31-day free trial, 10 GB/day cap; monitor against Azure budget alert).
+2. Configure Azure Policy — assign built-in Security Benchmark initiative.
+3. Build `azure-stack.yml` GitHub Actions pipeline for equivalent timing comparison against the open-source and baseline pipelines.
+4. Conduct comparative analysis across all six metrics.

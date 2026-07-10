@@ -22,7 +22,7 @@ The 2020 SolarWinds SUNBURST breach demonstrated that rule-based security tools 
 ## What Is Included
 
 - An open-source security stack (Semgrep, Trivy, Trufflehog, Falco, OPA) integrated as a pre-pipeline gate — **all five tools complete, verified both manually and through automated CI/CD**
-- An Azure cloud-native security stack (Defender for DevOps, Defender for Cloud, GitHub Advanced Security, Microsoft Sentinel, Azure Policy) integrated as an equivalent pre-pipeline gate
+- An Azure cloud-native security stack (Defender for DevOps, Defender for Cloud, GitHub Advanced Security, Microsoft Sentinel, Azure Policy) integrated as an equivalent pre-pipeline gate — **in progress**
 - A deliberately vulnerable test application (OWASP WebGoat) with introduced OWASP Top 10 CI/CD Security Risks
 - GitHub Actions pipeline configurations for both stacks, plus a baseline (no security tooling) control pipeline
 - A documented evaluation across six metrics: detection capability, false positive rate, setup complexity, pipeline overhead, cost, and SME suitability
@@ -39,6 +39,8 @@ Design Science Research (Hevner et al., 2004), structured across four phases:
 4. **Comparative evaluation and analysis**
 
 DSR was selected because this project builds and evaluates a technical artefact, rather than only observing existing systems (case study) or requiring organisational participation (action research).
+
+**Note on cloud vendor:** the original CA2 proposal specified AWS (CodeGuru, GuardDuty, Security Hub) as the cloud-native comparison stack. This was revised to Azure, confirmed with the supervisor by email on 22 June 2026, due to AWS free-tier trial windows (15–30 days per service) being incompatible with the project's iterative testing timeline, versus the longer window offered by an Azure for Students account.
 
 ---
 
@@ -86,6 +88,20 @@ DSR was selected because this project builds and evaluates a technical artefact,
 
 **CI/CD pipeline verification:** All findings above were first established through direct manual tool execution, then independently reproduced through the automated GitHub Actions pipeline (`opensource-stack.yml`). Two configuration issues were identified and resolved during this verification (missing submodule checkout, and scan-target mismatches for Semgrep and Trivy) — see `docs/implementation-log.md` for the full account.
 
+### Results So Far — Azure Stack In Progress
+
+| Component | Findings | Notes |
+|---|---|---|
+| CodeQL / GitHub Advanced Security | 71 (3 Critical, 52 High, 16 Medium) | See `metrics/results/screenshots/08-azure-ghas/` |
+| Dependabot | Not populated — documented GitHub limitation | GitHub's dependency graph does not scan manifests inside git submodules; see `docs/implementation-log.md`, 7 July entry |
+| Defender for Cloud | 75 findings (3 Critical, 52 High, 20 Medium) | Substantially the same underlying data as CodeQL, aggregated with a small number of additional scanner findings (Checkov, Bandit, ESLint) — not a fully independent detection engine, see note below |
+| Microsoft Sentinel | Not started | |
+| Azure Policy | Not started | |
+
+**Notable finding — Defender for Cloud is a dashboard layer, not independent detection:** Defender for Cloud's "DevOps security" findings (75 total) closely match CodeQL's own results (71 total) on Critical and High counts exactly (3 and 52 respectively), with a small additional set of Medium findings. This confirms Defender for Cloud aggregates CodeQL's scan results into its dashboard, rather than running a fully separate detection engine. This is a relevant SME suitability finding: Defender for Cloud's primary value in this context is centralised visibility and reporting, not additional independent detection coverage.
+
+**Setup friction encountered:** the Defender for Cloud GitHub connector initially failed to provision due to a system-level Azure Policy (`sys.regionrestriction`) on the Azure for Students subscription, restricting deployment to a specific set of regions (Switzerland North, Sweden Central, Poland Central, Canada Central, Spain Central) not including the initially selected North Europe / West Europe. Resolved by redeploying to Sweden Central. See `docs/implementation-log.md` for the full troubleshooting account — this is a citable Metric 3 (Setup Complexity) finding.
+
 ---
 
 ## Project Timeline
@@ -113,9 +129,14 @@ DSR was selected because this project builds and evaluates a technical artefact,
 | **Open-source stack overall** | **✅ ALL 5 TOOLS COMPLETE, VERIFIED MANUALLY AND IN CI** |
 | Baseline GitHub Actions pipeline (no security tools) | ✅ Complete — confirmed running in 11 seconds (control condition baseline) |
 | Open-source stack GitHub Actions pipeline (CI automation) | ✅ Complete — all four applicable tools (Semgrep, Trivy, Trufflehog, OPA) verified scanning real WebGoat content in automated CI |
-| Azure cloud-native stack | ⬜ Not started |
+| Azure — CodeQL / GitHub Advanced Security | ✅ Complete — 71 findings, verified |
+| Azure — Dependabot | 🔶 Documented as a limitation — submodule dependency scanning not supported natively, corroborated against WebGoat's upstream repo |
+| Azure — Defender for Cloud | ✅ Complete — GitHub connector live, 75 findings confirmed, region-restriction issue resolved (Sweden Central) |
+| Azure — Microsoft Sentinel | ⬜ Not started |
+| Azure — Azure Policy | ⬜ Not started |
+| Azure stack GitHub Actions pipeline (CI automation, timing) | ⬜ Not started |
 | Comparative analysis | ⬜ Not started |
 
 See `docs/implementation-log.md` for full setup details and `metrics/results/` for tool-by-tool findings and analysis.
 
-**Next step:** Set up Azure cloud-native stack (Dependabot, Defender for DevOps, Defender for Cloud, GitHub Advanced Security, Microsoft Sentinel, Azure Policy). Note: pipeline timing figures for the open-source stack (baseline ~12s, stack ~27s) were captured before the CI submodule fix and require re-measurement under corrected conditions before use in the comparative analysis.
+**Next step:** Set up Microsoft Sentinel (Log Analytics workspace, then Sentinel onboarding), then Azure Policy (built-in Security Benchmark initiative assignment), then build the Azure stack GitHub Actions pipeline for equivalent timing comparison. Note: pipeline timing figures for the open-source stack (baseline ~12s, stack ~27s) were captured before the CI submodule fix and require re-measurement under corrected conditions before use in the comparative analysis.
