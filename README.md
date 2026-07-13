@@ -22,7 +22,7 @@ The 2020 SolarWinds SUNBURST breach demonstrated that rule-based security tools 
 ## What Is Included
 
 - An open-source security stack (Semgrep, Trivy, Trufflehog, Falco, OPA) integrated as a pre-pipeline gate — **all five tools complete, verified both manually and through automated CI/CD**
-- An Azure cloud-native security stack (Defender for DevOps, Defender for Cloud, GitHub Advanced Security, Microsoft Sentinel, Azure Policy) integrated as an equivalent pre-pipeline gate — **in progress**
+- An Azure cloud-native security stack (Defender for DevOps, Defender for Cloud, GitHub Advanced Security, Microsoft Sentinel, Azure Policy) integrated as an equivalent pre-pipeline gate — **all components complete and verified, including one documented platform limitation (Dependabot)**
 - A deliberately vulnerable test application (OWASP WebGoat) with introduced OWASP Top 10 CI/CD Security Risks
 - GitHub Actions pipeline configurations for both stacks, plus a baseline (no security tooling) control pipeline
 - A documented evaluation across six metrics: detection capability, false positive rate, setup complexity, pipeline overhead, cost, and SME suitability
@@ -88,7 +88,7 @@ DSR was selected because this project builds and evaluates a technical artefact,
 
 **CI/CD pipeline verification:** All findings above were first established through direct manual tool execution, then independently reproduced through the automated GitHub Actions pipeline (`opensource-stack.yml`). Two configuration issues were identified and resolved during this verification (missing submodule checkout, and scan-target mismatches for Semgrep and Trivy) — see `docs/implementation-log.md` for the full account.
 
-### Results So Far — Azure Stack In Progress
+### Azure Stack Results — Complete
 
 | Component | Findings | Notes |
 |---|---|---|
