@@ -578,3 +578,63 @@ automatically (226 policies via ASC Default) but achieving comprehensive coverag
 (730 policies) requires deliberate, informed action — a default-vs-optimal
 configuration gap relevant to teams who assume "secure by default" without
 checking what that default actually covers.
+
+
+
+## 11 July 2026 — Sentinel & Azure Policy: Verification and Closeout
+
+### Microsoft Sentinel / Cloud Security — confirmed working correctly
+
+Checked Incidents and Alerts the morning after tenant preparation (initiated
+10 July, 09:22 PM) completed its 6-hour window. Both remained at 0, unfiltered
+(screenshots 07/08 from 10 July still valid as "before" state).
+
+Investigated further via Cloud Security → Overview: confirmed Azure environment
+now shows as connected (1), Security posture populated at 31.2% ("At risk"),
+and Security coverage showing 8 discovered assets, mostly Covered. This confirms
+the tenant preparation succeeded and data is flowing correctly.
+
+Root cause for zero Incidents/Alerts, correctly understood: Defender for Cloud's
+75 findings are posture/configuration **Recommendations**, not **Security Alerts**
+(active threat detections). Recommendations feed the Secure Score and posture
+dashboards but do not generate Incidents by design — this is expected product
+behaviour, not a defect. The earlier assumption that posture findings should
+surface as Incidents was itself the error, not the platform setup.
+
+**Finding for SME-suitability chapter:** Defender for Cloud's alert model
+distinguishes Recommendations (posture) from Alerts (active threats) in a way
+that is not obvious from the initial connector/onboarding flow, and can lead a
+team to believe their SIEM integration has failed when it is in fact working
+as designed.
+
+Screenshot: 11-cloud-security-confirmed-31pct.png,
+12-cloud-security-asset-coverage.png
+
+### Azure Policy — compliance results confirmed, multiple non-reconciled metrics observed
+
+Checked compliance results across two portals. Found five distinct compliance
+metrics for the same underlying evaluation, with materially different values:
+
+| Metric                                             | Source                    | Value                   |
+| -------------------------------------------------- | ------------------------- | ----------------------- |
+| Overall resource compliance                        | Azure Policy Overview     | 25% (5 of 20 resources) |
+| Individual policy-check pass rate                  | Azure Policy Overview     | ~95.4% (913 of 957)     |
+| Initiatives fully compliant                        | Azure Policy Overview     | 0 of 2                  |
+| Regulatory compliance — benchmark v2              | Defender for Cloud report | 50%                     |
+| Regulatory compliance — ASC Default               | Defender for Cloud report | 56.25%                  |
+| Non-compliant resources, benchmark v2 specifically | Azure Policy Remediation  | 15 flagged              |
+
+**Finding for SME-suitability chapter:** Azure Policy and Defender for Cloud do
+not present a single authoritative compliance percentage. Resource-level,
+policy-level, initiative-level, and control-level compliance are all reported
+differently, scoped differently, and not reconciled across the two portals used
+to view them. This creates real risk of misinterpretation for a team without
+deep platform familiarity — quoting "compliance" without specifying which of
+five metrics is meant is easy to do incorrectly.
+
+**Screenshots**: 05-policy-overview-4metrics.png, 06-policy-overview-trend-chart.png,07-policy-remediation-noncompliant-resources.png
+
+**Both Sentinel and Azure Policy are now complete deliverables**, closing out
+the tool-implementation commitment made in the 10 July supervisor update.
+
+
