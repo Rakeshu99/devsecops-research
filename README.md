@@ -138,9 +138,21 @@ DSR was selected because this project builds and evaluates a technical artefact,
 | Azure — Defender for Cloud | ✅ Complete — GitHub connector live, 75 findings confirmed, region-restriction issue resolved (Sweden Central) |
 | Azure — Microsoft Sentinel | ✅ Complete — confirmed working as designed (posture Recommendations do not generate Incidents; verified 11 Jul) |
 | Azure — Azure Policy | ✅ Complete — ASC Default + benchmark v2 assigned and evaluating; multi-metric compliance finding documented (verified 11 Jul) |
-| Azure stack GitHub Actions pipeline (CI automation, timing) | ⬜ Not started |
+| Azure stack GitHub Actions pipeline (CI automation, timing) | ✅ Complete — `azure-stack.yml` built, same-session timing comparison captured 13 Jul 2026 |
 | Comparative analysis | ⬜ Not started |
 
 See `docs/implementation-log.md` for full setup details and `metrics/results/` for tool-by-tool findings and analysis.
 
-**Next step (targeting 20 July):** build the Azure stack GitHub Actions pipeline for equivalent timing comparison, then re-measure baseline and open-source pipeline timings under the corrected CI config (current figures pre-date the submodule fix). From 20 July, literature survey expansion begins regardless of pipeline status, to preserve runway ahead of the 3 August research-conduct deadline.
+### Pipeline overhead — same-session timing comparison (13 July 2026)
+
+All three pipelines triggered manually, back-to-back, same runner/network conditions:
+
+| Pipeline | Duration | Overhead vs baseline |
+|---|---|---|
+| Baseline (no security tooling) | 17s | — |
+| Open-source stack (Semgrep, Trivy, Trufflehog, OPA — parallel) | 1m 0s | +43s (~3.5x) |
+| Azure stack (CodeQL) | 2m 43s | +146s (~9.6x) |
+
+**Azure stack scope note:** `azure-stack.yml` runs CodeQL only. Dependabot, Defender for Cloud, Sentinel, and Azure Policy are deliberately excluded — none execute as an inline CI step; all evaluate asynchronously at the platform level. This is itself a Pipeline Overhead finding: most of the Azure stack adds zero measurable per-run overhead by architecture, unlike the open-source stack where every tool runs inline on every push. The gap that does exist (CodeQL taking ~2.7x longer than all four open-source tools combined) is explained by CodeQL's `build-mode: manual`, which requires compiling WebGoat via Maven (1m 13s of the 2m 43s total) before analysis can run — a real depth-vs-speed trade-off, not incidental inefficiency. Full breakdown in `docs/implementation-log.md`, 13 July entry.
+
+**Next step (targeting 20 July, buffer already used):** comparative analysis chapter, drawing on all findings documented above. From 20 July, literature survey expansion begins regardless of analysis progress, to preserve runway ahead of the 3 August research-conduct deadline.

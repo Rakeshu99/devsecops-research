@@ -638,3 +638,63 @@ five metrics is meant is easy to do incorrectly.
 the tool-implementation commitment made in the 10 July supervisor update.
 
 
+
+
+
+## 13 July 2026 — Azure Stack Pipeline Built; Same-Session Timing Comparison
+
+### Azure stack GitHub Actions pipeline
+
+Renamed the existing `codeql.yml` workflow to `azure-stack.yml` (git history
+preserved via `git mv`), correcting its trigger scoping to watch only
+`app/**` and its own workflow file — previously it watched
+`.github/workflows/**`, an asymmetry versus `baseline.yml` and
+`opensource-stack.yml` that would have biased any timing comparison. The
+underlying CodeQL job logic (checkout with submodules, JDK 25 setup,
+CodeQL init, Maven build, CodeQL analyse) was left unchanged, since it was
+already verified and producing correct results (71 findings).
+
+**Scope decision, stated explicitly:** `azure-stack.yml` runs CodeQL only.
+Dependabot, Defender for Cloud, Microsoft Sentinel, and Azure Policy are not
+included, because none of them execute as an inline CI pipeline step — they
+evaluate asynchronously at the platform level, outside any pipeline's
+execution window. This is not a scoping gap; it is itself the finding for
+the Pipeline Overhead metric: most of the Azure stack adds zero measurable
+pipeline overhead by architecture, in contrast to the open-source stack,
+where every tool executes inline on every run.
+
+### Same-session timing comparison
+
+All three pipelines were triggered manually (`workflow_dispatch`) back-to-back
+on 13 July 2026, under identical runner/network conditions, to produce a
+fair, directly comparable timing dataset (superseding the earlier ~12s/~27s
+figures, which pre-dated the CI submodule fix and were not captured
+same-session).
+
+| Pipeline | Duration | Notes |
+|---|---|---|
+| Baseline (no security tooling) | **17s** | Control condition — checkout + simulated build only. Consistent with prior baseline runs (11–17s range) |
+| Open-source stack (Semgrep, Trivy, Trufflehog, OPA) | **1m 0s (60s)** | 4 jobs run in parallel; consistent with prior runs (1m0s–1m7s range) |
+| Azure stack (CodeQL) | **2m 43s (163s)** | Dominated by Maven build step (1m 13s) and CodeQL analysis (1m 1s); matrix `actions` job ran in parallel and finished in 41s, but total wall-clock time follows the slower `java-kotlin` job |
+
+**Overhead relative to baseline:**
+- Open-source stack: +43s (~3.5x baseline)
+- Azure stack: +146s (~9.6x baseline)
+- Azure stack vs open-source stack: CodeQL alone takes ~2.7x longer than all four open-source tools combined, running in parallel
+
+**Finding for the Pipeline Overhead metric and comparative analysis chapter:**
+the timing gap is not simply "Azure is slower" — it is architecturally
+explained. CodeQL's `build-mode: manual` requires actually compiling WebGoat
+via Maven before analysis can run, a step none of the open-source tools
+need (Semgrep and Trivy operate directly against source/container image;
+Trufflehog and OPA require no build step at all). Deeper, compiled-code
+static analysis has a real, measurable time cost in a CI pipeline —
+a genuine trade-off for SMEs to weigh against CodeQL's analysis depth,
+not an incidental inefficiency.
+
+**Corroborating evidence:** GitHub's native "Security and quality" tab shows
+71 open alerts, matching the previously documented CodeQL finding count
+exactly — independent confirmation the renamed pipeline reproduces identical
+results to the original `codeql.yml`.
+
+Commits: `d28766d` (rename azure-stack.yml, fix trigger scoping).
