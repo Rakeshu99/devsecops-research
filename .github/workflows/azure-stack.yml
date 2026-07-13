@@ -1,16 +1,16 @@
-name: "CodeQL Advanced — Azure GHAS Stack"
+name: "Azure Stack Pipeline (CodeQL / GHAS)"
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main ]
     paths:
       - 'app/**'
-      - '.github/workflows/**'
+      - '.github/workflows/azure-stack.yml'
   pull_request:
-    branches: [ "main" ]
+    branches: [ main ]
     paths:
       - 'app/**'
-      - '.github/workflows/**'
+      - '.github/workflows/azure-stack.yml'
   workflow_dispatch:
 
 jobs:
