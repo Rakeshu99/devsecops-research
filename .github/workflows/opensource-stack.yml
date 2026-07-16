@@ -84,17 +84,33 @@ jobs:
           sudo mv opa /usr/local/bin/
       - name: Install pyyaml for YAML conversion
         run: pip3 install pyyaml
-      - name: Convert workflow YAML to JSON
+      - name: Convert WebGoat release.yml to JSON
         run: |
-          python3 -c "import yaml, json; print(json.dumps(yaml.safe_load(open('.github/workflows/opensource-stack.yml'))))" > workflow.json
-      - name: Copy OPA policy from stacks folder
-        run: cp stacks/opensource/opa/github-actions-security.rego .
-      - name: Run OPA policy evaluation
+          python3 -c "import yaml, json; print(json.dumps(yaml.safe_load(open('app/webgoat/.github/workflows/release.yml'))))" > release-workflow.json
+      - name: Convert WebGoat build.yml to JSON
         run: |
-          opa eval --data github-actions-security.rego --input workflow.json "data.githubactions.deny" --format pretty > opa-results.json || true
-          cat opa-results.json
+          python3 -c "import yaml, json; print(json.dumps(yaml.safe_load(open('app/webgoat/.github/workflows/build.yml'))))" > build-workflow.json
+      - name: Copy OPA policies from stacks folder
+        run: |
+          cp stacks/opensource/opa/github-actions-security.rego .
+          cp stacks/opensource/opa/action-pinning.rego .
+          cp stacks/opensource/opa/secret-logging.rego .
+      - name: "Run Policy 1 — Shell injection (target: WebGoat release.yml)"
+        run: |
+          opa eval --data github-actions-security.rego --input release-workflow.json "data.githubactions.deny" --format pretty > opa-results-policy1.json || true
+          cat opa-results-policy1.json
+      - name: "Run Policy 2 — Unpinned actions (target: WebGoat release.yml + build.yml)"
+        run: |
+          opa eval --data action-pinning.rego --input release-workflow.json "data.actionpinning.deny" --format pretty > opa-results-policy2-release.json || true
+          opa eval --data action-pinning.rego --input build-workflow.json "data.actionpinning.deny" --format pretty > opa-results-policy2-build.json || true
+          cat opa-results-policy2-release.json
+          cat opa-results-policy2-build.json
+      - name: "Run Policy 3 — Secret logging (target: WebGoat release.yml)"
+        run: |
+          opa eval --data secret-logging.rego --input release-workflow.json "data.secretlogging.deny" --format pretty > opa-results-policy3.json || true
+          cat opa-results-policy3.json
       - name: Upload OPA results
         uses: actions/upload-artifact@v4
         with:
           name: opa-results
-          path: opa-results.json
+          path: opa-results-policy*.json
