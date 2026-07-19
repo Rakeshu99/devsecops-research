@@ -131,7 +131,7 @@ DSR was selected because this project builds and evaluates a technical artefact,
 | Open-source stack — Falco (runtime anomaly detection) | ✅ Complete — successfully detected shell spawned in container, with full forensic context |
 | Open-source stack — OPA (policy enforcement) | ✅ Complete — cross-validated Semgrep's finding; zero false positives on control test |
 | **Open-source stack overall** | **✅ ALL 5 TOOLS COMPLETE, VERIFIED MANUALLY AND IN CI** |
-| Baseline GitHub Actions pipeline (no security tools) | ✅ Complete — confirmed running in 11 seconds (control condition baseline) |
+| Baseline GitHub Actions pipeline (no security tools) | ✅ Complete — mean 16.3s across 3 interleaved trials (range 15–18s, low variance) — see Pipeline Overhead section below |
 | Open-source stack GitHub Actions pipeline (CI automation) | ✅ Complete — all four applicable tools (Semgrep, Trivy, Trufflehog, OPA) verified scanning real WebGoat content in automated CI |
 | Azure — CodeQL / GitHub Advanced Security | ✅ Complete — 71 findings, verified |
 | Azure — Dependabot | 🔶 Documented as a limitation — submodule dependency scanning not supported natively, corroborated against WebGoat's upstream repo |
@@ -145,14 +145,16 @@ See `docs/implementation-log.md` for full setup details and `metrics/results/` f
 
 ### Pipeline overhead — same-session timing comparison (13 July 2026)
 
-All three pipelines triggered manually, back-to-back, same runner/network conditions:
+The 13 July figures were single runs, so I went back and re-measured properly: three interleaved rounds (baseline, then open-source, then Azure, repeated three times) instead of one-off timings, to rule out runner or network noise skewing any single result.
 
-| Pipeline | Duration | Overhead vs baseline |
-|---|---|---|
-| Baseline (no security tooling) | 17s | — |
-| Open-source stack (Semgrep, Trivy, Trufflehog, OPA — parallel) | 1m 0s | +43s (~3.5x) |
-| Azure stack (CodeQL) | 2m 43s | +146s (~9.6x) |
+| Pipeline | Mean | Range | Overhead vs baseline |
+|---|---|---|---|
+| Baseline (no security tooling) | 16.3s | 15–18s | — |
+| Open-source stack (Semgrep, Trivy, Trufflehog, OPA — parallel) | 65.7s | 64–67s | +49.4s (~4.0x) |
+| Azure stack (CodeQL) | 157.7s | 154–160s | +141.4s (~9.7x) |
 
-**Azure stack scope note:** `azure-stack.yml` runs CodeQL only. Dependabot, Defender for Cloud, Sentinel, and Azure Policy are deliberately excluded — none execute as an inline CI step; all evaluate asynchronously at the platform level. This is itself a Pipeline Overhead finding: most of the Azure stack adds zero measurable per-run overhead by architecture, unlike the open-source stack where every tool runs inline on every push. The gap that does exist (CodeQL taking ~2.7x longer than all four open-source tools combined) is explained by CodeQL's `build-mode: manual`, which requires compiling WebGoat via Maven (1m 13s of the 2m 43s total) before analysis can run — a real depth-vs-speed trade-off, not incidental inefficiency. Full breakdown in `docs/implementation-log.md`, 13 July entry.
+Variance was tight across all three (3–6 second spread), which is reassuring — it means the original single-run numbers weren't flukes, just slightly imprecise.
+
+**Azure stack scope note:** `azure-stack.yml` runs CodeQL only. Dependabot, Defender for Cloud, Sentinel, and Azure Policy are deliberately excluded — none execute as an inline CI step; all evaluate asynchronously at the platform level. This is itself a Pipeline Overhead finding: most of the Azure stack adds zero measurable per-run overhead by architecture, unlike the open-source stack where every tool runs inline on every push. The gap that does exist (CodeQL taking roughly 2.4x longer than all four open-source tools combined) is explained by CodeQL's `build-mode: manual`, which requires compiling WebGoat via Maven before analysis can run — a real depth-vs-speed trade-off, not incidental inefficiency. Full breakdown in `docs/implementation-log.md`.
 
 **Next step (targeting 20 July, buffer already used):** comparative analysis chapter, drawing on all findings documented above. From 20 July, literature survey expansion begins regardless of analysis progress, to preserve runway ahead of the 3 August research-conduct deadline.

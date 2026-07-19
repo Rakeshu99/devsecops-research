@@ -698,3 +698,120 @@ exactly — independent confirmation the renamed pipeline reproduces identical
 results to the original `codeql.yml`.
 
 Commits: `d28766d` (rename azure-stack.yml, fix trigger scoping).
+
+
+
+## 20 July 2026 — Timing Re-Measurement, OPA Expansion, and Azure Re-Verification
+
+### Re-measuring pipeline overhead with repeated trials
+
+The 13 July timing figures were single runs each, which is a reasonable
+starting point but not something I'd want to defend under questioning
+without backing. So I went back and triggered all three pipelines
+(baseline, open-source, Azure) in three interleaved rounds rather than one
+block each, specifically to avoid one pipeline type getting an unfair
+advantage or disadvantage from GitHub Actions runner load changing partway
+through the session.
+
+Results: baseline mean 16.3s (range 15-18s), open-source stack mean 65.7s
+(range 64-67s), Azure stack mean 157.7s (range 154-160s). Variance was
+small across all three, which is the useful part — it means the original
+single-run numbers weren't outliers, just less rigorously supported than
+they could be. README and comparative-analysis.md updated with the mean
+figures; the 13 July single-run numbers are now superseded, not
+contradicted.
+
+### Expanding the OPA false-positive evidence base
+
+Up to this point, the whole False Positive Rate metric rested on one OPA
+policy (the shell-injection check) with one true-positive and one
+true-negative case. That's thin for a metric worth a sixth of the analysis
+chapter, so I wrote two more policies covering different OWASP CI/CD risk
+classes:
+
+- **Action pinning** (CICD-SEC-3, dependency chain abuse) — flags GitHub
+  Actions referenced by a mutable tag instead of a pinned commit SHA.
+- **Secret logging** (CICD-SEC-6, insufficient credential hygiene) — flags
+  workflow steps that echo a `secrets.*` value directly into build logs.
+
+Both were tested against synthetic true-positive/true-negative pairs first,
+then against WebGoat's actual `release.yml` and `build.yml` for a stronger,
+real-world result. That's where it got interesting.
+
+**Bug 1 — inherited, not new.** Wiring the two new policies into the CI
+pipeline meant looking closely at how the existing shell-injection policy
+was actually being evaluated in `opensource-stack.yml`, and it turned out
+the automated job had been testing the wrong file the whole time — its own
+workflow YAML instead of WebGoat's `release.yml`. That means every
+automated run since this job was built would have silently returned an
+empty result, even though the manually-verified finding was correct.
+Nobody had gone back to check this specifically until now. Fixed by
+pointing the job at `app/webgoat/.github/workflows/release.yml` instead.
+
+**Bug 2 — mine, caught same session.** Testing the new action-pinning
+policy against WebGoat's real files, it flagged a local composite action
+(`./.github/actions/java-setup`) as an unpinned third-party dependency.
+That's wrong — a relative-path local action isn't third-party at all, so
+it doesn't carry the supply-chain risk the policy is meant to catch. Fixed
+by excluding `./`-prefixed references, the same way the policy already
+excluded GitHub's own first-party `actions/` namespace.
+
+**Final results, confirmed in an actual CI run (not just locally):**
+
+| Policy | Target | Result |
+|---|---|---|
+| Shell injection | WebGoat `release.yml` | 1 finding |
+| Unpinned actions | WebGoat `release.yml` + `build.yml` | 7 findings (5 + 2) |
+| Secret logging | WebGoat `release.yml` | 0 findings (correct) |
+
+This gives six ground-truth data points across three distinct risk classes
+instead of two, and — more importantly for the methodology chapter — a
+real, documented instance of catching and fixing two separate bugs by
+insisting on testing against real code instead of trusting a policy or a
+pipeline step just because it ran without error.
+
+Files: `stacks/opensource/opa/action-pinning.rego`,
+`stacks/opensource/opa/secret-logging.rego`,
+`metrics/results/opa-expanded-policies.md`,
+`.github/workflows/opensource-stack.yml`.
+
+### Azure re-verification pass
+
+Given how much got caught by re-checking the OPA job, I did the same thing
+across the Azure side rather than assuming everything was still as
+documented from 13 July.
+
+**CodeQL and Defender for Cloud — unchanged.** GitHub's Security tab still
+shows 71 code scanning alerts. Defender for Cloud's DevOps security blade
+still shows 75 findings, 3 Critical / 52 High / 20 Medium, with the same
+71 code / 4 IaC / 0 secret / 0 dependency breakdown as before. Nothing
+drifted.
+
+**A fourth instance of the cross-portal inconsistency pattern.** Landed
+first on Defender for Cloud's general Overview blade in the Azure Portal,
+which showed 100% secure score and 0 recommendations — a completely
+different picture from the 75-finding, 31.2%-secure-score view already
+documented. Turned out this was a different, more limited blade than the
+DevOps security one; once I navigated to the right page the numbers
+matched. But the fact that Microsoft's own portal can show two
+contradictory pictures of the identical environment, depending on which
+blade you happen to land on, is now something I've independently hit
+three separate times (Sentinel's connector count, Azure Policy's five
+compliance metrics, and now this) — it's clearly a real, stable
+characteristic of the platform rather than a one-off glitch, and worth
+naming as a pattern rather than three unrelated footnotes.
+
+**Sentinel cost — confirmed zero, via Azure's own numbers.** The Log
+Analytics workspace's "Usage and estimated costs" page shows Pay-as-you-go
+tier, $0.00 total across both the last 31 and last 90 days, "No data" on
+every usage chart. Consistent with the KQL-based zero-ingestion check from
+10 July, now backed by Microsoft's own billing estimate too.
+
+**Trial expiry — not directly surfaced by the portal.** Went looking for
+an explicit countdown on the Sentinel trial and never found one — checked
+the Sentinel Overview page (redirected to the deprecated classic
+experience), the Settings/pricing page, and the Log Analytics workspace's
+own usage page. None of them show a trial end date directly. Falling back
+to the logged start date instead: trial began 10 July, stated window is
+30-31 days, so expiry is 9-10 August, not the rough "8 August" estimate
+used earlier. Worth using the more precise range going forward.
