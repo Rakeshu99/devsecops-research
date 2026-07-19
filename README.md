@@ -147,11 +147,13 @@ See `docs/implementation-log.md` for full setup details and `metrics/results/` f
 
 The 13 July figures were single runs, so I went back and re-measured properly: three interleaved rounds (baseline, then open-source, then Azure, repeated three times) instead of one-off timings, to rule out runner or network noise skewing any single result.
 
-| Pipeline | Mean | Range | Overhead vs baseline |
+| Round | Baseline | Open-source | Azure (CodeQL) |
 |---|---|---|---|
-| Baseline (no security tooling) | 16.3s | 15–18s | — |
-| Open-source stack (Semgrep, Trivy, Trufflehog, OPA — parallel) | 65.7s | 64–67s | +49.4s (~4.0x) |
-| Azure stack (CodeQL) | 157.7s | 154–160s | +141.4s (~9.7x) |
+| 1 | 18s | 1m 4s (64s) | 2m 34s (154s) |
+| 2 | 16s | 1m 7s (67s) | 2m 40s (160s) |
+| 3 | 15s | 1m 6s (66s) | 2m 39s (159s) |
+| **Mean** | **16.3s** | **65.7s** | **157.7s** |
+| **Range** | 15–18s | 64–67s | 154–160s |
 
 Variance was tight across all three (3–6 second spread), which is reassuring — it means the original single-run numbers weren't flukes, just slightly imprecise.
 
