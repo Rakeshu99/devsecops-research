@@ -815,3 +815,48 @@ own usage page. None of them show a trial end date directly. Falling back
 to the logged start date instead: trial began 10 July, stated window is
 30-31 days, so expiry is 9-10 August, not the rough "8 August" estimate
 used earlier. Worth using the more precise range going forward.
+
+
+
+## 27 July 2026 — Further Azure Re-Verification, Two New Findings
+
+Went back into the portal to prep for video evidence recording (trial
+expires 9-10 August, wanted to confirm everything still matched before
+recording it as the "current state"). Sentinel and the DevOps security
+blade both checked out exactly as documented — connector count still 1 vs
+7, Incidents/Alerts still 0/0, 75 findings still matching CodeQL's 71 on
+Critical/High. Nothing had drifted in a week.
+
+Two things came up that hadn't been seen before, though.
+
+**The Cloud Security Overview page has an environment filter that changes
+the entire picture.** With the filter off (the state everything so far has
+been documented against), the page shows 31.2% secure score, "At risk," 8
+assets. Toggling "Environment filter: On" to scope it to Azure only
+produces 86.9%, "Good," 1 asset — on the exact same page, no navigation
+involved. This is a stronger version of the cross-portal inconsistency
+already documented several times, since it's not even two different
+pages or products this time, just one filter toggle. Confirmed the filter
+was off again before treating 31.2%/8 assets as the reference state for
+video recording.
+
+**The Regulatory Compliance page has yet another compliance figure.**
+Beyond the resource-level (25%), policy-check-level (~95.4%),
+initiative-level (0/2), and the two earlier regulatory-report percentages
+(50%/56.25%), this page shows "56 of 63 controls passed" — about 89%, a
+category-level rollup (Network Security, Identity Management, Privileged
+Access, etc.) that's a different unit of aggregation from all the others.
+Four categories are currently failing: Privileged Access, Data Protection,
+Logging and Threat Detection, and Incident Response — worth a specific
+mention given how directly those relate to the actual security posture
+story this project is measuring.
+
+That's six distinct, non-reconciled compliance metrics for the same
+environment now, and a fifth confirmed instance of the broader
+cross-portal/cross-view inconsistency pattern. Updated the Setup
+Complexity table in comparative-analysis.md accordingly — 6 Azure-side
+friction points now, against 2 on the open-source side.
+
+Video recording (Sentinel and Defender for Cloud walkthroughs) still
+pending — both browser sessions are set up and confirmed showing the
+correct reference state, scripted and ready to record.

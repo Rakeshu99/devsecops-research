@@ -39,9 +39,11 @@ Six ground-truth data points across three distinct risk classes, up from the ori
 | Region restriction (`sys.regionrestriction`) | Azure | Subscription policy not reflected in connector UI | High — required raw Activity Log JSON inspection |
 | Sentinel zero-incidents | Azure | Tenant Cloud Security onboarding never triggered, separate from connector/gallery | High — multi-step diagnostic path |
 | Dependabot submodule gap | Azure | Platform limitation, no warning surfaced | Medium — required corroboration against upstream repo |
-| Cross-portal inconsistency (4 instances) | Azure | Different Azure/Defender portals report different numbers for the same environment | Medium — requires knowing to check more than one view |
+| Cross-portal inconsistency (5 instances) | Azure | Different Azure/Defender portals — and now different filter states on the same page — report different numbers for the same environment | Medium — requires knowing to check more than one view or filter state |
+| Single-page filter toggle changes results | Azure | Cloud Security Overview's "Environment filter" toggle produces contradictory secure scores (31.2% vs 86.9%) and asset counts (8 vs 1) on the identical page, no explanation of which is authoritative | Medium — easy to miss the toggle exists, no default state is flagged as canonical |
+| Six non-reconciled compliance metrics | Azure | Regulatory Compliance page alone shows two figures (56/63 controls ≈ 89%, plus the earlier 50%/56.25% benchmark percentages) in addition to the resource-, policy-, and initiative-level metrics found earlier — six total, none reconciled | Low to find, high to interpret correctly |
 
-**Score: 2 friction points in open-source stack, 4 in Azure stack.**
+**Score: 2 friction points in open-source stack, 6 in Azure stack.**
 
 ## Metric 4 — Pipeline Overhead
 
@@ -75,8 +77,8 @@ Variance was low across all three (3–6s spread), confirming the original singl
 |---|---|
 | Ongoing cost | Open-source |
 | Detection transparency (traceable to specific rule/pattern) | Open-source |
-| Initial setup friction | Azure (4 friction points vs 2, several harder to diagnose) |
-| Ongoing interpretive complexity | Open-source (Azure: cross-portal inconsistency observed 4 separate times, 5 non-reconciled compliance metrics, Recommendations-vs-Alerts confusion) |
+| Initial setup friction | Azure (6 friction points vs 2, several harder to diagnose) |
+| Ongoing interpretive complexity | Open-source (Azure: cross-portal inconsistency observed 5 separate times, 6 non-reconciled compliance metrics, Recommendations-vs-Alerts confusion) |
 | Detection depth (semantic vs pattern-based) | Azure (CodeQL's data-flow analysis) |
 | Pipeline speed | Open-source |
 
