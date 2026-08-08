@@ -160,3 +160,5 @@ Variance was tight across all three (3–6 second spread), which is reassuring �
 **Azure stack scope note:** `azure-stack.yml` runs CodeQL only. Dependabot, Defender for Cloud, Sentinel, and Azure Policy are deliberately excluded — none execute as an inline CI step; all evaluate asynchronously at the platform level. This is itself a Pipeline Overhead finding: most of the Azure stack adds zero measurable per-run overhead by architecture, unlike the open-source stack where every tool runs inline on every push. The gap that does exist (CodeQL taking roughly 2.4x longer than all four open-source tools combined) is explained by CodeQL's `build-mode: manual`, which requires compiling WebGoat via Maven before analysis can run — a real depth-vs-speed trade-off, not incidental inefficiency. Full breakdown in `docs/implementation-log.md`.
 
 **Next step (targeting 20 July, buffer already used):** comparative analysis chapter, drawing on all findings documented above. From 20 July, literature survey expansion begins regardless of analysis progress, to preserve runway ahead of the 3 August research-conduct deadline.
+
+
