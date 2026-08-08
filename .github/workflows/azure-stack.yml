@@ -1,3 +1,5 @@
+# evidence recording trigger
+
 name: "Azure Stack Pipeline (CodeQL / GHAS)"
 
 on:
